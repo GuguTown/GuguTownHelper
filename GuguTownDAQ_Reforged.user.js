@@ -7,7 +7,7 @@
 // @homepage     https://github.com/HazukiKaguya/GuguTownDAQ_Reforged
 // @version      1.6.1.1
 // @description  WebGame GuguTown DAQ & Helper,now DAQ is off
-// @description:zh-CN 氣人頁遊 咕咕镇 数据采集&助手，目前采集已关闭
+// @description:zh-CN 气人页游 咕咕镇 数据采集&助手，目前采集已关闭
 // @description:zh-TW 氣人頁遊 咕咕鎮 資料採集&助手，目前採集已關閉
 // @description:ja オンラインゲーム 咕咕镇 DAQ&助手, 現在、DAQはオフです
 // @author       paraii & zyxboy
