@@ -1,6 +1,7 @@
 English | [Chinese](README_zh.md)   
 # GuguTown Helper Reforged
-WebGame GuguTown DAQ & Helper,now DAQ is off. The reforged version mainly deals with compatibility issues with ThemePackage Manager Plugin (current) and internationalization works (todo).
+WebGame GuguTown DAQ & Helper,now DAQ is off.    
+The reforged version mainly deals with compatibility issues with ThemePackage Manager Plugin (current) and internationalization works (todo).
 
 ## Install Original Ver 
 [GreasyFork](https://greasyfork.org/scripts/445173) 
