@@ -7572,4 +7572,4 @@ function gudaq() {
             }
         }, 500);
     }
-}};gudaq();
+};gudaq();
