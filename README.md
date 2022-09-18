@@ -13,6 +13,7 @@ The reforged version mainly deals with compatibility issues with ThemePackage Ma
 [KF](https://kf.miaola.work/read.php?tid=913532&sf=9ac)
 
 ## Changelogs
+1.6.2.2 merge changes from main line Ver1.6.2;
 1.6.1.1 merge changes from main line Ver1.6.1;   
 1.5.8.1 merge changes from main line Ver1.5.8;   
 1.5.7.1 merge changes from main line Ver1.5.7;   
