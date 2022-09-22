@@ -5,7 +5,7 @@
 // @name:ja      咕咕镇助手再鍛造
 // @namespace    https://github.com/HazukiKaguya/GuguTownDAQ_Reforged
 // @homepage     https://github.com/HazukiKaguya/GuguTownDAQ_Reforged
-// @version      1.6.2.2
+// @version      1.6.2.3
 // @description  WebGame GuguTown DAQ & Helper,now DAQ is off
 // @description:zh-CN 气人页游 咕咕镇 数据采集&助手，目前采集已关闭
 // @description:zh-TW 氣人頁遊 咕咕鎮 資料採集&助手，目前採集已關閉
@@ -64,7 +64,7 @@ function gudaq() {
     const g_beachBGStorageKey = g_kfUser + '_beach_BG';
 
     const g_userDataStorageKeyConfig = [ g_kfUser, g_autoTaskEnabledStorageKey, g_autoTaskCheckStoneProgressStorageKey,
-                                         g_indexRallyStorageKey, g_keepPkRecordStorageKey, g_amuletGroupsStorageKey,g_forgeAutoStorageKey,
+                                         g_indexRallyStorageKey, g_keepPkRecordStorageKey,g_amuletGroupsStorageKey,g_forgeAutoStorageKey,
                                          g_stoneAuto1StorageKey,g_stoneAuto2StorageKey,g_stoneAuto3StorageKey,
                                          g_stoneAuto4StorageKey,g_stoneAuto5StorageKey,g_stoneAuto6StorageKey,
                                          g_equipmentExpandStorageKey, g_equipmentStoreExpandStorageKey, g_equipmentBGStorageKey,
@@ -257,10 +257,10 @@ function gudaq() {
                     div.innerHTML = response.responseText;
 
                     if (bag != null) {
-                        div.querySelectorAll('div.alert-danger > div.content > button.fyg_mp3')?.forEach((e) => { bag.push(e); });
+                        div.querySelectorAll('div.alert-danger > button.fyg_mp3')?.forEach((e) => { bag.push(e); });
                     }
                     if (store != null) {
-                        div.querySelectorAll('div.alert-success > div.content > button.fyg_mp3')?.forEach((e) => { store.push(e); });
+                        div.querySelectorAll('div.alert-success > button.fyg_mp3')?.forEach((e) => { store.push(e); });
                     }
 
                     if (fnFurtherProcess != null) {
@@ -2854,7 +2854,7 @@ function gudaq() {
 
                 const cardingObjectsQueryString = '#carding > div.row > div.fyg_tc > button.fyg_mp3';
                 const bagObjectsQueryString = '#backpacks > div.alert-danger > div.content > button.fyg_mp3';
-                const storeObjectsQueryString = '#backpacks > div.alert-success > div.content > button.fyg_mp3';
+                const storeObjectsQueryString = '#backpacks > div.alert-success > button.fyg_mp3';
                 const storeQueryString = '#backpacks > div.alert.alert-success.with-icon';
                 const storeButtonId = 'collapse-backpacks-store';
 
@@ -6485,13 +6485,14 @@ function gudaq() {
         let beach = document.getElementById('beachall');
         beach.parentNode.insertBefore(beachConfigDiv, beach);
 
-        let batbtns = document.querySelector('div.col-md-9 > div.panel.panel-primary > div.panel-body > div.btn-group > button.btn.btn-danger');
+        let batbtns =$(".row>.row>.col-md-12>.panel>#beachall");
+            //document.querySelector('div.col-md-9 > div.panel.panel-primary > div.panel-body > div.btn-group > button.btn.btn-danger');
         let toAmuletBtn = document.createElement('button');
         toAmuletBtn.className = batbtns.className;
         toAmuletBtn.innerText = '批量沙滩装备转护符';
         toAmuletBtn.style.marginLeft = '1px';
         toAmuletBtn.onclick = equipToAmulet;
-        batbtns.parentNode.appendChild(toAmuletBtn);
+        //batbtns.parentNode.appendChild(toAmuletBtn);
 
         function equipToAmulet() {
             loadTheme();
