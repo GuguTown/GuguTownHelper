@@ -5,7 +5,7 @@
 // @name:ja      咕咕镇助手再鍛造
 // @namespace    https://github.com/HazukiKaguya/GuguTownDAQ_Reforged
 // @homepage     https://github.com/HazukiKaguya/GuguTownDAQ_Reforged
-// @version      1.6.2.3
+// @version      1.6.2.4
 // @description  WebGame GuguTown DAQ & Helper,now DAQ is off
 // @description:zh-CN 气人页游 咕咕镇 数据采集&助手，目前采集已关闭
 // @description:zh-TW 氣人頁遊 咕咕鎮 資料採集&助手，目前採集已關閉
@@ -2853,7 +2853,7 @@ function gudaq() {
                 panel.insertBefore(calcDiv, calcBtn);
 
                 const cardingObjectsQueryString = '#carding > div.row > div.fyg_tc > button.fyg_mp3';
-                const bagObjectsQueryString = '#backpacks > div.alert-danger > div.content > button.fyg_mp3';
+                const bagObjectsQueryString = '#backpacks > div.alert-danger > button.fyg_mp3';
                 const storeObjectsQueryString = '#backpacks > div.alert-success > button.fyg_mp3';
                 const storeQueryString = '#backpacks > div.alert.alert-success.with-icon';
                 const storeButtonId = 'collapse-backpacks-store';
@@ -4390,7 +4390,7 @@ function gudaq() {
                         }
                     }
 
-                    let originalBag, originalStore;
+                    let originalBag,originalStore;
                     let currentEquipments = equipmentNodesToInfoArray(document.querySelectorAll(cardingObjectsQueryString));
                     function beginPutonEquipments(bindInfo) {
                         genericPopupTaskSetState(2, '- 检查装备...');
@@ -4412,14 +4412,15 @@ function gudaq() {
                         function scheduleEquipments() {
                             function rescheduleEquipments() {
                                 genericPopupTaskSetState(2, '- 检查装备...');
-                                beginReadObjects(originalBag = [], originalStore = [], scheduleEquipments, null);
+                                beginReadObjects(originalBag = [],originalStore = [], scheduleEquipments, null);
                             }
 
                             let eqs = equipsToPuton.slice();
-                            let eqsInBag = findEquipmentIds(originalBag, eqs);
+                            let eqsInBag = findEquipmentIds(originalStore, eqs);
                             if (eqsInBag.length == equipsToPuton.length) {
                                 genericPopupTaskSetState(2, `- 穿戴装备...（${eqsInBag.length}）`);
                                 putonEquipments(eqsInBag, beginLoadAmulets, null);
+                                genericPopupTaskComplete(2, false);
                                 return;
                             }
 
@@ -4465,6 +4466,7 @@ function gudaq() {
                                     }
                                 }
                             }
+
                         }
                     }
 
