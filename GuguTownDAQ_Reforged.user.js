@@ -5,7 +5,7 @@
 // @name:ja      咕咕镇助手再鍛造
 // @namespace    https://github.com/HazukiKaguya/GuguTownDAQ_Reforged
 // @homepage     https://github.com/HazukiKaguya/GuguTownDAQ_Reforged
-// @version      1.7.0.1
+// @version      1.7.2.1
 // @description  WebGame GuguTown DAQ & Helper,now DAQ is off
 // @description:zh-CN 气人页游 咕咕镇 数据采集&助手，目前采集已关闭
 // @description:zh-TW 氣人頁遊 咕咕鎮 資料採集&助手，目前採集已關閉
