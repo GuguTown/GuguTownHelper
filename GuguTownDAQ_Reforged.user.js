@@ -5,7 +5,7 @@
 // @name:ja      咕咕镇助手再鍛造
 // @namespace    https://github.com/HazukiKaguya/GuguTownDAQ_Reforged
 // @homepage     https://github.com/HazukiKaguya/GuguTownDAQ_Reforged
-// @version      1.7.6.2
+// @version      1.7.9.1
 // @description  WebGame GuguTown DAQ & Helper,now DAQ is off
 // @description:zh-CN 气人页游 咕咕镇 数据采集&助手，目前采集已关闭
 // @description:zh-TW 氣人頁遊 咕咕鎮 資料採集&助手，目前採集已關閉
@@ -27,7 +27,7 @@ function gudaq() {
     //
     ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    const g_modificationVersion = '2022-09-24 15:40:00';
+    const g_modificationVersion = '2022-09-26 00:00:00';
 
     const g_navigatorSelector = 'div.panel > div.panel-body > div.row > div.col-md-10 > div > ';
     let kfUserSpan = document.querySelector(g_navigatorSelector + 'span.fyg_colpz06.fyg_f24');
@@ -41,7 +41,6 @@ function gudaq() {
     const g_guguzhenGift = '/fyg_gift.php';
     const g_guguzhenShop = '/fyg_shop.php';
 
-    const g_forgeAutoStorageKey = g_kfUser + '_forgeAuto';
     const g_autoTaskEnabledStorageKey = g_kfUser + '_autoTaskEnabled';
     const g_autoTaskCheckStoneProgressStorageKey = g_kfUser + '_autoTaskCheckStoneProgress';
     const g_indexRallyStorageKey = g_kfUser + '_indexRally';
@@ -56,7 +55,7 @@ function gudaq() {
     const g_beachBGStorageKey = g_kfUser + '_beach_BG';
 
     const g_userDataStorageKeyConfig = [ g_kfUser, g_autoTaskEnabledStorageKey, g_autoTaskCheckStoneProgressStorageKey, g_indexRallyStorageKey,
-                                         g_keepPkRecordStorageKey, g_amuletGroupsStorageKey, g_equipmentExpandStorageKey,g_forgeAutoStorageKey,
+                                         g_keepPkRecordStorageKey, g_amuletGroupsStorageKey, g_equipmentExpandStorageKey,
                                          g_equipmentStoreExpandStorageKey, g_equipmentBGStorageKey, g_stoneOperationStorageKey,
                                          g_ignoreWishpoolExpirationStorageKey, g_beachForceExpandStorageKey, g_beachBGStorageKey ];
 
@@ -405,8 +404,7 @@ function gudaq() {
     }
 
     function objectMatchTitle(node, key){
-        return (!(key?.length > 0) || (node.getAttribute('data-original-title') ??
-                                       node.getAttribute('title'))?.indexOf(key) >= 0);
+        return (!(key?.length > 0) || (node.getAttribute('data-original-title') ?? node.getAttribute('title'))?.indexOf(key) >= 0);
     }
 
     // we wait the response(s) of the previous batch of request(s) to send another batch of request(s)
@@ -483,13 +481,14 @@ function gudaq() {
         }
     }
 
-    const g_pirl_verify_data = '124';
+    const g_beach_pirl_verify_data = '85797';
+    const g_store_pirl_verify_data = '124';
     var g_pirl_data = null;
     var g_objectPirlRequestsCount = 0;
-    function beginPirlObjects(objects, fnPostProcess, fnParams) {
+    function beginPirlObjects(storePirl, objects, fnPostProcess, fnParams) {
         if (objects?.length > 0) {
             g_pirl_data ??= (getPostData(/pirl\(id\)\{[\s\S]*\}/m, /data: ".*\+id\+.*\+pirlyz\+.*"/)?.
-                             slice(7, -1).replace('"+pirlyz+"', g_pirl_verify_data) ?? '');
+                             slice(7, -1).replace('"+pirlyz+"', storePirl ? g_store_pirl_verify_data : g_beach_pirl_verify_data) ?? '');
             if (g_pirl_data.length > 0) {
                 let ids = [];
                 while (ids.length < g_maxConcurrentRequests && objects.length > 0) {
@@ -505,7 +504,7 @@ function gudaq() {
                                     console.log(response.responseText);
                                 }
                                 if (--g_objectPirlRequestsCount == 0) {
-                                    beginPirlObjects(objects, fnPostProcess, fnParams);
+                                    beginPirlObjects(storePirl, objects, fnPostProcess, fnParams);
                                 }
                             });
                     }
@@ -768,21 +767,23 @@ function gudaq() {
     var g_amuletTypeNames = g_amuletDefaultTypeNames;
 
     function amuletLoadTheme(theme) {
-        g_amuletLevelNames = theme.dessertlevel;
-        g_amuletTypeNames = theme.dessertname;
-        g_amuletLevelIds = {
-            start : 0,
-            end : theme.dessertlevel[0].length
-        };
-        g_amuletTypeIds = {
-            start : theme.dessertlevel[0].length,
-            end : theme.dessertlevel[0].length + theme.dessertname[0].length
-        };
-        for (let i = g_amuletLevelNames.length - 1; i >= 0; i--) {
-            g_amuletLevelIds[g_amuletLevelNames[i].slice(0, g_amuletLevelIds.end - g_amuletLevelIds.start)] = i;
-        }
-        for (let i = g_amuletTypeNames.length - 1; i >= 0; i--) {
-            g_amuletTypeIds[g_amuletTypeNames[i].slice(0, g_amuletTypeIds.end - g_amuletTypeIds.start)] = i;
+        if (theme.dessertlevel?.length > 0 && theme.dessertname?.length > 0) {
+            g_amuletLevelNames = theme.dessertlevel;
+            g_amuletTypeNames = theme.dessertname;
+            g_amuletLevelIds = {
+                start : 0,
+                end : theme.dessertlevel[0].length
+            };
+            g_amuletTypeIds = {
+                start : theme.dessertlevel[0].length,
+                end : theme.dessertlevel[0].length + theme.dessertname[0].length
+            };
+            for (let i = g_amuletLevelNames.length - 1; i >= 0; i--) {
+                g_amuletLevelIds[g_amuletLevelNames[i].slice(0, g_amuletLevelIds.end - g_amuletLevelIds.start)] = i;
+            }
+            for (let i = g_amuletTypeNames.length - 1; i >= 0; i--) {
+                g_amuletTypeIds[g_amuletTypeNames[i].slice(0, g_amuletTypeIds.end - g_amuletTypeIds.start)] = i;
+            }
         }
     }
 
@@ -2355,25 +2356,27 @@ function gudaq() {
     var g_useOldEquipName = false;
     var g_useThemeEquipName = false;
     function equipLoadTheme(theme) {
-        g_equipmentLevelName = theme.level;
-        if (g_useOldEquipName) {
-            g_oldEquipNames.forEach((item) => {
-                if (!g_equipMap.has(item[1])) {
-                    let eqMeta = g_equipMap.get(item[0]);
-                    if (eqMeta != undefined) {
-                        eqMeta.alias = item[1];
-                        g_equipMap.set(eqMeta.alias, eqMeta);
+        if (theme.level?.length > 0) {
+            g_equipmentLevelName = theme.level;
+            if (g_useOldEquipName) {
+                g_oldEquipNames.forEach((item) => {
+                    if (!g_equipMap.has(item[1])) {
+                        let eqMeta = g_equipMap.get(item[0]);
+                        if (eqMeta != undefined) {
+                            eqMeta.alias = item[1];
+                            g_equipMap.set(eqMeta.alias, eqMeta);
+                        }
                     }
-                }
-            });
-        }
-        if (g_useThemeEquipName) {
-            for(let item in theme) {
-                if (/^[a-z]+\d+$/.test(item) && theme[item].length >= 5 && theme[item][3]?.length > 0 && !g_equipMap.has(theme[item][3])) {
-                    let eqMeta = g_equipMap.get(theme[item][2]);
-                    if (eqMeta != undefined) {
-                        eqMeta.alias = theme[item][3];
-                        g_equipMap.set(eqMeta.alias, eqMeta);
+                });
+            }
+            if (g_useThemeEquipName) {
+                for(let item in theme) {
+                    if (/^[a-z]+\d+$/.test(item) && theme[item].length >= 5 && theme[item][3]?.length > 0 && !g_equipMap.has(theme[item][3])) {
+                        let eqMeta = g_equipMap.get(theme[item][2]);
+                        if (eqMeta != undefined) {
+                            eqMeta.alias = theme[item][3];
+                            g_equipMap.set(eqMeta.alias, eqMeta);
+                        }
                     }
                 }
             }
@@ -2588,9 +2591,6 @@ function gudaq() {
                 if (btn.innerText.indexOf('我的角色') >= 0) {
                     if (tips?.length > 0) {
                         btn.innerText = `我的角色（${tips}）`;
-                        if(tips.indexOf('100%')>-1&&window.location.href.indexOf('fyg_equip.php')==-1&&$('#forgeAutoCheckbox')[0].checked){
-                            window.open('fyg_equip.php', '_blank'); btn.innerText = `我的角色`;
-                        };
                         if (btn.className.indexOf('btn-danger') < 0) {
                             btn.className += ' btn-danger';
                         }
@@ -2793,7 +2793,6 @@ function gudaq() {
             genericPopupShowModal(true);
         }
 
-        const USER_DATA_xPORT_GM_KEY = g_kfUser + '_export_string';
         const USER_DATA_xPORT_SEPARATOR = '\n';
 
         function importUserConfigData() {
@@ -2804,25 +2803,6 @@ function gudaq() {
                  <div style="height:330px;"><textarea id="user_data_persistence_string"
                  style="height:100%;width:100%;resize:none;"></textarea></div>`);
 
-            genericPopupAddButton(
-                '从全局存储中读取',
-                0,
-                ((e) => {
-                    e.target.disabled = 'disabled';
-                    genericPopupQuerySelector('#user_data_persistence_string').value = GM_getValue(USER_DATA_xPORT_GM_KEY, '');
-                    let tipContainer = genericPopupQuerySelector('#user_data_import_tip');
-                    let tipColor = tipContainer.style.color;
-                    let tipString = tipContainer.innerText;
-                    tipContainer.style.color = '#ff0000';
-                    tipContainer.innerText = (genericPopupQuerySelector('#user_data_persistence_string').value.length > g_kfUser.length ?
-                                              '已从全局存储中读取成功' : '未能读取导出数据，请确保已在“数据导出”功能中写入全局存储');
-                    setTimeout((() => {
-                        tipContainer.style.color = tipColor;
-                        tipContainer.innerText = tipString;
-                        e.target.disabled = '';
-                    }), 3000);
-                }),
-                true);
             genericPopupAddButton(
                 '执行导入',
                 0,
@@ -2891,24 +2871,6 @@ function gudaq() {
                  <div style="height:330px;"><textarea id="user_data_persistence_string" readonly="true"
                  style="height:100%;width:100%;resize:none;"></textarea></div>`);
 
-            genericPopupAddButton(
-                '写入全局存储',
-                0,
-                ((e) => {
-                    e.target.disabled = 'disabled';
-                    GM_setValue(USER_DATA_xPORT_GM_KEY, genericPopupQuerySelector('#user_data_persistence_string').value);
-                    let tipContainer = genericPopupQuerySelector('#user_data_export_tip');
-                    let tipColor = tipContainer.style.color;
-                    let tipString = tipContainer.innerText;
-                    tipContainer.style.color = '#ff0000';
-                    tipContainer.innerText = '导出内容已写入全局存储';
-                    setTimeout((() => {
-                        tipContainer.style.color = tipColor;
-                        tipContainer.innerText = tipString;
-                        e.target.disabled = '';
-                    }), 3000);
-                }),
-                true);
             genericPopupAddButton(
                 '复制导出内容至剪贴板',
                 0,
@@ -3195,7 +3157,7 @@ function gudaq() {
                                     bag++;
                                     let ids = findAmuletIds(storeObjects, amulets);
                                     if (ids.length > 0) {
-                                        beginPirlObjects(ids, refreshContainer, pirlAmulets);
+                                        beginPirlObjects(true, ids, refreshContainer, pirlAmulets);
                                         return;
                                     }
                                 }
@@ -6538,7 +6500,7 @@ function gudaq() {
         let beach = document.getElementById('beachall');
         beach.parentNode.insertBefore(beachConfigDiv, beach);
 
-        let batbtns = $(".panel-heading>.btn-group>.btn-group>.btn-danger")[0];
+        let batbtns = document.querySelector('div.col-md-12 > div.panel > div.panel-heading > div.btn-group > div.btn-group > button.btn.btn-danger.dropdown-toggle');
         let toAmuletBtn = document.createElement('button');
         toAmuletBtn.className = batbtns.className;
         toAmuletBtn.innerText = '批量沙滩装备转护符';
@@ -6580,13 +6542,10 @@ function gudaq() {
                 }, 200);
             }
 
-            function queryObjects(storeEquips, storeAmulets, beach, beachEquipLevel) {
+            function queryObjects(storeAmulets, beach, beachEquipLevel) {
                 freeCell = parseInt(document.querySelector('#wares > p.fyg_lh40.fyg_tc.text-gray')?.innerText?.match(/\d+/));
                 if (isNaN(freeCell)) {
                     freeCell = 0;
-                }
-                if (storeEquips != null) {
-                    equipmentNodesToInfoArray(document.querySelectorAll('#wares > button.fyg_mp3'), storeEquips);
                 }
                 if (storeAmulets != null) {
                     amuletNodesToArray(document.querySelectorAll('#wares > button.fyg_mp3'), storeAmulets);
@@ -6605,39 +6564,21 @@ function gudaq() {
                 }
             }
 
-            let pickCount;
-            function pickEquip() {
-                genericPopupShowInformationTips('拾取装备...', 0);
-                let ids = [];
-                while (originalBeach.length > 0 && ids.length < freeCell) {
-                    ids.unshift(originalBeach.pop());
-                }
-                pickCount = ids.length;
-                beginMoveObjects(ids, g_object_move_path.beach2store, refreshStore, findPickedEquip);
-            }
-
-            function findPickedEquip() {
-                let equips = [];
-                queryObjects(equips);
-                let newEqs = findNewObjects(equips, originalStoreEquips, equipmentInfoComparer, true);
-                if (newEqs.length != pickCount) {
-                    alert('从海滩拾取装备出错无法继续，请手动处理！');
-                    window.location.reload();
-                    return;
-                }
+            function pirlEquip() {
                 genericPopupShowInformationTips('熔炼装备...', 0);
                 let ids = [];
-                newEqs.forEach((i) => {
-                    ids.push(equips[i][7]);
-                });
-                beginPirlObjects(ids, refreshStore, prepareNewAmulets);
+                while (originalBeachEquips.length > 0 && ids.length < freeCell) {
+                    ids.unshift(originalBeachEquips.pop());
+                }
+                pirlCount = ids.length;
+                beginPirlObjects(false, ids, refreshStore, prepareNewAmulets);
             }
 
             function prepareNewAmulets() {
                 let amulets = [];
-                queryObjects(null, amulets);
+                queryObjects(amulets);
                 newAmulets = findNewObjects(amulets, originalStoreAmulets, (a, b) => a.compareTo(b), false);
-                if (newAmulets.length != pickCount) {
+                if (newAmulets.length != pirlCount) {
                     alert('熔炼装备出错无法继续，请手动处理！');
                     window.location.reload();
                     return;
@@ -6655,17 +6596,17 @@ function gudaq() {
                 else if (document.getSelection) {
                     document.getSelection().removeAllRanges();
                 }
-                genericPopupShowInformationTips((originalBeach.length > 0 ? '本批' : '全部') + '装备熔炼完成，请分类后继续', 0);
-                btnContinue.innerText = `继续 （剩余 ${originalBeach.length} 件装备 / ${freeCell} 个空位）`;
+                genericPopupShowInformationTips((originalBeachEquips.length > 0 ? '本批' : '全部') + '装备熔炼完成，请分类后继续', 0);
+                btnContinue.innerText = `继续 （剩余 ${originalBeachEquips.length} 件装备 / ${freeCell} 个空位）`;
                 btnContinue.disabled = '';
-                btnCloseOnBatch.disabled = '';
+                btnCloseOnBatch.disabled = (originalBeachEquips.length > 0 ? '' : 'disabled');
             }
 
             function processNewAmulets() {
                 btnContinue.disabled = 'disabled';
                 btnCloseOnBatch.disabled = 'disabled';
 
-                if (pickCount > 0) {
+                if (pirlCount > 0) {
                     let indices = [];
                     for (let li of amuletToDestroyList.children) {
                         indices.push(parseInt(li.getAttribute('item-index')));
@@ -6682,27 +6623,26 @@ function gudaq() {
                         });
                         if (warning > 0 && !confirm(`这将把 ${warning} 个“樱桃／传奇”护符转换成果核，要继续吗？`)) {
                             btnContinue.disabled = '';
-                            btnCloseOnBatch.disabled = '';
+                            btnCloseOnBatch.disabled = (originalBeachEquips.length > 0 ? '' : 'disabled');
                             return;
                         }
                         amuletToDestroyList.innerHTML = '';
                         coresCollected += indices.length;
-                        pickCount -= indices.length;
+                        pirlCount -= indices.length;
                         genericPopupShowInformationTips('转换果核...', 0);
-                        beginPirlObjects(ids, refreshStore, processNewAmulets);
+                        beginPirlObjects(true, ids, refreshStore, processNewAmulets);
                     }
                     else {
                         amuletToStoreList.innerHTML = '';
-                        amuletsCollected += pickCount;
-                        pickCount = 0;
+                        amuletsCollected += pirlCount;
+                        pirlCount = 0;
                         processNewAmulets();
                     }
                 }
-                else if (originalBeach.length > 0) {
-                    queryObjects(originalStoreEquips, originalStoreAmulets);
-                    originalStoreEquips.sort(equipmentInfoComparer);
+                else if (originalBeachEquips.length > 0) {
+                    queryObjects(originalStoreAmulets);
                     originalStoreAmulets.sort((a, b) => a.compareTo(b));
-                    pickEquip();
+                    pirlEquip();
                 }
                 else {
                     postProcess(15);
@@ -6741,17 +6681,17 @@ function gudaq() {
                 });
             }
 
-            let originalBeach = [];
-            let originalStoreEquips = [];
+            let originalBeachEquips = [];
             let originalStoreAmulets = [];
             let freeCell = 0;
+            let pirlCount = 0;
             let amuletsCollected = 0;
             let coresCollected = 0;
             let newAmulets = null;
 
             let minBeachEquipLevelToAmulet = (g_configMap.get('minBeachEquipLevelToAmulet')?.value ?? 1);
-            queryObjects(null, null, originalBeach, minBeachEquipLevelToAmulet);
-            if (originalBeach.length == 0) {
+            queryObjects(null, originalBeachEquips, minBeachEquipLevelToAmulet);
+            if (originalBeachEquips.length == 0) {
                 alert('海滩无可熔炼装备！');
                 return;
             }
@@ -6784,9 +6724,9 @@ function gudaq() {
             amuletToStoreList.ondblclick = amuletToDestroyList.ondblclick = moveAmuletItem;
 
             genericPopupShowInformationTips('这会分批将海滩可熔炼装备转化为护符，请点击“继续”开始', 0);
-            let btnContinue = genericPopupAddButton(`继续 （剩余 ${originalBeach.length} 件装备 / ${freeCell} 个空位）`,
+            let btnContinue = genericPopupAddButton(`继续 （剩余 ${originalBeachEquips.length} 件装备 / ${freeCell} 个空位）`,
                                                     0, processNewAmulets, true);
-            let btnCloseOnBatch = genericPopupAddButton('本批完成后关闭', 0, (() => { originalBeach = []; processNewAmulets(); }), false);
+            let btnCloseOnBatch = genericPopupAddButton('本批完成后关闭', 0, (() => { originalBeachEquips = []; processNewAmulets(); }), false);
             btnCloseOnBatch.disabled = 'disabled';
             genericPopupAddButton('关闭', 80, (() => { genericPopupClose(); window.location.reload(); }), false);
 
@@ -7063,20 +7003,12 @@ function gudaq() {
         pkConfigDiv.style.className = 'panel-heading';
         pkConfigDiv.style.float = 'right';
         pkConfigDiv.innerHTML =
-            `<label for="forgeAutoCheckbox" style="margin-right:5px;cursor:pointer;">满进度提示时跳转</label>
-             <input type="checkbox" id="forgeAutoCheckbox" style="margin-right:15px;" />
-             <label for="indexRallyCheckbox" style="margin-right:5px;cursor:pointer;">为攻击回合加注索引</label>
+            `<label for="indexRallyCheckbox" style="margin-right:5px;cursor:pointer;">为攻击回合加注索引</label>
              <input type="checkbox" id="indexRallyCheckbox" style="margin-right:15px;" />
              <label for="keepPkRecordCheckbox" style="margin-right:5px;cursor:pointer;">暂时保持战斗记录</label>
              <input type="checkbox" id="keepPkRecordCheckbox" style="margin-right:15px;" />
              <label for="autoTaskEnabledCheckbox" style="margin-right:5px;cursor:pointer;">允许执行自定义任务</label>
              <input type="checkbox" id="autoTaskEnabledCheckbox" />`;
-
-        let forgeAuto = setupConfigCheckbox(
-            pkConfigDiv.querySelector('#forgeAutoCheckbox'),
-            g_forgeAutoStorageKey,
-            (checked) => { forgeAuto = checked; },
-            null);
 
         let indexRally = setupConfigCheckbox(
             pkConfigDiv.querySelector('#indexRallyCheckbox'),
@@ -7533,4 +7465,4 @@ function gudaq() {
         }, 500);
     }
 };
-gudaq();
+$(document).ready(function(e) { gudaq();});
