@@ -5,7 +5,7 @@
 // @name:ja      咕咕镇助手再鍛造
 // @namespace    https://github.com/HazukiKaguya/GuguTownDAQ_Reforged
 // @homepage     https://github.com/HazukiKaguya/GuguTownDAQ_Reforged
-// @version      1.7.9.1
+// @version      1.7.25.1
 // @description  WebGame GuguTown DAQ & Helper,now DAQ is off
 // @description:zh-CN 气人页游 咕咕镇 数据采集&助手，目前采集已关闭
 // @description:zh-TW 氣人頁遊 咕咕鎮 資料採集&助手，目前採集已關閉
@@ -18,7 +18,7 @@
 // @updateURL    https://github.com/HazukiKaguya/GuguTownDAQ_Reforged/raw/main/GuguTownDAQ_Reforged.user.js
 // ==/UserScript==
 /* eslint-env jquery */
-function gudaq() {
+function gudaq(){
     'use strict'
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -27,7 +27,7 @@ function gudaq() {
     //
     ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    const g_modificationVersion = '2022-09-26 00:00:00';
+    const g_modificationVersion = '2022-10-25 17:00:00';
 
     const g_navigatorSelector = 'div.panel > div.panel-body > div.row > div.col-md-10 > div > ';
     let kfUserSpan = document.querySelector(g_navigatorSelector + 'span.fyg_colpz06.fyg_f24');
@@ -288,6 +288,7 @@ function gudaq() {
     }
 
     // HTTP requests
+    const g_use_GM_xmlhttpRequest = false;
     const g_postMethod = 'POST'
     const g_readUrl = window.location.origin + '/fyg_read.php'
     const g_postUrl = window.location.origin + '/fyg_click.php'
@@ -296,31 +297,46 @@ function gudaq() {
     var g_httpRequests = [];
     function httpRequestBegin(isRead, queryString, fnLoad, fnError, fnTimeout) {
         let request;
-        request = new XMLHttpRequest();
-        request.onload = request.onerror = request.ontimeout = httpRequestEventHandler;
-        request.open(g_postMethod, isRead ? g_readUrl : g_postUrl);
-        for (let name in g_postHeader) {
-            request.setRequestHeader(name, g_postHeader[name]);
+        if (g_use_GM_xmlhttpRequest) {
+            /*
+            request = GM_xmlhttpRequest({
+                method: g_postMethod,
+                url: (isRead ? g_readUrl : g_postUrl),
+                headers: g_postHeader,
+                data: queryString,
+                onload: fnLoad,
+                onerror: fnError,
+                ontimeout: fnTimeout
+            });
+            */
         }
-        request.send(queryString);
+        else {
+            request = new XMLHttpRequest();
+            request.onload = request.onerror = request.ontimeout = httpRequestEventHandler;
+            request.open(g_postMethod, isRead ? g_readUrl : g_postUrl);
+            for (let name in g_postHeader) {
+                request.setRequestHeader(name, g_postHeader[name]);
+            }
+            request.send(queryString);
 
-        function httpRequestEventHandler(e) {
-            switch (e.type) {
-                case 'load':
-                    if (fnLoad != undefined) {
-                        fnLoad(e.currentTarget);
-                    }
-                    break;
-                case 'error':
-                    if (fnError != undefined) {
-                        fnError(e.currentTarget);
-                    }
-                    break;
-                case 'timeout':
-                    if (fnTimeout != undefined) {
-                        fnTimeout(e.currentTarget);
-                    }
-                    break;
+            function httpRequestEventHandler(e) {
+                switch (e.type) {
+                    case 'load':
+                        if (fnLoad != undefined) {
+                            fnLoad(e.currentTarget);
+                        }
+                        break;
+                    case 'error':
+                        if (fnError != undefined) {
+                            fnError(e.currentTarget);
+                        }
+                        break;
+                    case 'timeout':
+                        if (fnTimeout != undefined) {
+                            fnTimeout(e.currentTarget);
+                        }
+                        break;
+                }
             }
         }
         g_httpRequests.push(request);
@@ -349,10 +365,10 @@ function gudaq() {
                     div.innerHTML = response.responseText;
 
                     if (bag != null) {
-                        div.querySelectorAll('div.alert-danger > button.fyg_mp3')?.forEach((e) => { bag.push(e); });
+                        div.querySelectorAll('div.alert-danger > button.btn.fyg_mp3')?.forEach((e) => { bag.push(e); });
                     }
                     if (store != null) {
-                        div.querySelectorAll('div.alert-success > button.fyg_mp3')?.forEach((e) => { store.push(e); });
+                        div.querySelectorAll('div.alert-success > button.btn.fyg_mp3')?.forEach((e) => { store.push(e); });
                     }
 
                     if (fnPostProcess != null) {
@@ -389,7 +405,7 @@ function gudaq() {
 
     function objectIdParseNodes(nodes, ids, key, ignoreEmptyCell) {
         for (let node of nodes) {
-            if (node.className?.endsWith('fyg_mp3') || node.className?.endsWith('fyg_mp3 fyg_tc')) {
+            if (node.className?.indexOf('fyg_mp3') >= 0) {
                 let id = node.getAttribute('onclick')?.match(/\d+/)[0];
                 if (id != undefined) {
                     if (objectMatchTitle(node, key)) {
@@ -487,8 +503,7 @@ function gudaq() {
     var g_objectPirlRequestsCount = 0;
     function beginPirlObjects(storePirl, objects, fnPostProcess, fnParams) {
         if (objects?.length > 0) {
-            g_pirl_data ??= (getPostData(/pirl\(id\)\{[\s\S]*\}/m, /data: ".*\+id\+.*\+pirlyz\+.*"/)?.
-                             slice(7, -1).replace('"+pirlyz+"', storePirl ? g_store_pirl_verify_data : g_beach_pirl_verify_data) ?? '');
+            g_pirl_data ??= (getPostData(/pirl\(id\)\{[\s\S]*\}/m, /data: ".*\+id\+.*\+pirlyz\+.*"/)?.slice(7, -1) ?? '');
             if (g_pirl_data.length > 0) {
                 let ids = [];
                 while (ids.length < g_maxConcurrentRequests && objects.length > 0) {
@@ -498,7 +513,8 @@ function gudaq() {
                     while (ids.length > 0) {
                         httpRequestBegin(
                             false,
-                            g_pirl_data.replace('"+id+"', ids.shift()),
+                            g_pirl_data.replace('"+pirlyz+"', storePirl ? g_store_pirl_verify_data : g_beach_pirl_verify_data)
+                                       .replace('"+id+"', ids.shift()),
                             (response) => {
                                 if (!/\d+/.test(response.responseText.trim()) && response.responseText.indexOf('果核') < 0) {
                                     console.log(response.responseText);
@@ -556,7 +572,7 @@ function gudaq() {
                 true,
                 'f=5',
                 (response) => {
-                    let haloPS = response.responseText.match(/<h3>[^\d]*(\d+)[^\d]*(\d+)[^<]+<\/h3>/);
+                    let haloPS = response.responseText.match(/<h3>.+?(\d+).+?(\d+).+?<\/h3>/);
                     if (haloPS?.length == 3) {
                         haloInfo.push(parseInt(haloPS[1]));
                         haloInfo.push(parseInt(haloPS[2]));
@@ -635,7 +651,7 @@ function gudaq() {
                     if (stoneInfos?.length == 6) {
                         for (let stone of stoneInfos) {
                             let type = (stone.getAttribute('onclick')?.match(/\d+/)?.[0] ?? '0');
-                            let infos = stone.innerHTML?.match(/(.石)（上限(\d+)）.+?>(\d+)</m);
+                            let infos = stone.innerHTML?.match(/(.+?)（.+?(\d+)）.+?>(\d+)</m);
                             if (infos?.length == 4) {
                                 stones.push({ type : parseInt(type), name : infos[1], max : parseInt(infos[2]), current : parseInt(infos[3]) });
                             }
@@ -650,9 +666,9 @@ function gudaq() {
     }
 
     var g_safeid = null;
-    var g_stoneFunctionParams = [ { index : 0, name : '锻造装备', action : false, fnId : '25', param : 'undefined' },
-                                  { index : 1, name : '生成卡片', action : false, fnId : '26', param : 'undefined' },
-                                  { index : 2, name : '宝石收集', action : false, fnId : '27', param : '0' } ];
+    var g_stoneFunctionParams = [ { index : 0, name : '锻造装备', exec : false, fnId : '25', param : 'undefined' },
+                                  { index : 1, name : '生成卡片', exec : false, fnId : '26', param : 'undefined' },
+                                  { index : 2, name : '宝石收集', exec : false, fnId : '27', param : '0' } ];
     function stoneGenerationRequest(preSucceeded, fnPostProcess)
     {
         if (!((g_safeid ??= getPostDataSafeId())?.length > 0)) {
@@ -688,9 +704,9 @@ function gudaq() {
 
         let requests = [];
         g_stoneFunctionParams.forEach((e, i) => {
-            if (e.action) {
+            if (e.exec) {
                 requests.push(e);
-                e.action = false;
+                e.exec = false;
             }
         });
         if ((requestsCount = requests.length) > 0) {
@@ -847,31 +863,35 @@ function gudaq() {
         });
 
         this.fromNode = ((node) => {
-            let typeName = (node.getAttribute('data-original-title') ?? node.getAttribute('title'));
-            if (!/Lv.+?>\d+</.test(typeName) && node?.className?.indexOf('fyg_mp3') >= 0) {
-                let id = node.getAttribute('onclick');
-                let content = node.getAttribute('data-content');
-                if (id != null && content?.length > 0 &&
-                    !isNaN(this.type = (g_amuletTypeIds[typeName.slice(g_amuletTypeIds.start, g_amuletTypeIds.end)] ??
-                                        g_amuletDefaultTypeIds[typeName.slice(g_amuletDefaultTypeIds.start, g_amuletDefaultTypeIds.end)])) &&
-                    !isNaN(this.level = (g_amuletLevelIds[typeName.slice(g_amuletLevelIds.start, g_amuletLevelIds.end)] ??
-                                         g_amuletDefaultLevelIds[typeName.slice(g_amuletDefaultLevelIds.start, g_amuletDefaultLevelIds.end)])) &&
-                    !isNaN(this.id = parseInt(id.match(/\d+/)[0])) &&
-                    !isNaN(this.enhancement = parseInt(node.innerHTML.match(/>(\d+)</)[1]))) {
+            if (node?.nodeType == Node.ELEMENT_NODE && node.className?.indexOf('fyg_mp3') >= 0) {
+                let typeName = (node.getAttribute('data-original-title') ?? node.getAttribute('title'));
+                if (!/Lv.+?>\d+</.test(typeName)) {
+                    let id = node.getAttribute('onclick');
+                    let content = node.getAttribute('data-content');
+                    if (id?.length > 0 && content?.length > 0 &&
+                        !isNaN(this.type = (g_amuletTypeIds[typeName.slice(g_amuletTypeIds.start, g_amuletTypeIds.end)] ??
+                                            g_amuletDefaultTypeIds[typeName.slice(g_amuletDefaultTypeIds.start,
+                                                                                  g_amuletDefaultTypeIds.end)])) &&
+                        !isNaN(this.level = (g_amuletLevelIds[typeName.slice(g_amuletLevelIds.start, g_amuletLevelIds.end)] ??
+                                             g_amuletDefaultLevelIds[typeName.slice(g_amuletDefaultLevelIds.start,
+                                                                                    g_amuletDefaultLevelIds.end)])) &&
+                        !isNaN(this.id = parseInt(id.match(/\d+/)?.[0])) &&
+                        !isNaN(this.enhancement = parseInt(node.innerText))) {
 
-                    this.buffCode = 0;
-                    this.text = '';
-                    let attr = null;
-                    let regex = /<p.*?>(.+?)<.*?>\+(\d+).*?<\/span><\/p>/g;
-                    while ((attr = regex.exec(content))?.length == 3) {
-                        let buffMeta = g_amuletBuffMap.get(attr[1]);
-                        if (buffMeta != null) {
-                            this.buffCode += ((100 ** (buffMeta.index % 6)) * attr[2]);
-                            this.text += `${this.text.length > 0 ? ', ' : ''}${attr[1]} +${attr[2]} ${buffMeta.unit}`;
+                        this.buffCode = 0;
+                        this.text = '';
+                        let attr = null;
+                        let regex = /<p.*?>(.+?)<.*?>\+(\d+).*?<\/span><\/p>/g;
+                        while ((attr = regex.exec(content))?.length == 3) {
+                            let buffMeta = g_amuletBuffMap.get(attr[1]);
+                            if (buffMeta != null) {
+                                this.buffCode += ((100 ** (buffMeta.index % 6)) * attr[2]);
+                                this.text += `${this.text.length > 0 ? ', ' : ''}${attr[1]} +${attr[2]} ${buffMeta.unit}`;
+                            }
                         }
-                    }
-                    if (this.isValid()) {
-                        return this;
+                        if (this.isValid()) {
+                            return this;
+                        }
                     }
                 }
             }
@@ -1481,40 +1501,29 @@ function gudaq() {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     //
-    // equipment utilities
+    // property utilities
     //
     ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    const g_equipmentDefaultLevelName = [ '普通', '幸运', '稀有', '史诗', '传奇' ];
-    const g_equipmentLevelPoints = [ 200, 321, 419, 516, 585 ];
-    const g_equipmentLevelBGColor = [ '#e0e8e8', '#c0e0ff', '#c0ffc0', '#ffffc0', '#ffd0d0' ];
-    const g_equipmentLevelTipClass = [ 'popover-primary', 'popover-info', 'popover-success', 'popover-warning', 'popover-danger' ];
-    var g_equipmentLevelName = g_equipmentDefaultLevelName;
-    function equipmentInfoParseNode(node) {
-        let typeName = (node.getAttribute('data-original-title') ?? node.getAttribute('title'));
-        if (/Lv.+?>\d+</.test(typeName) && node?.className?.split(' ')?.length >= 2 && node.className.indexOf('fyg_mp3') >= 0) {
-            let name = typeName.substring(typeName.lastIndexOf('>') + 1).trim();
-            name = (g_equipMap.get(name)?.shortMark ?? g_equipMap.get(name.substring(g_equipmentLevelName[0].length))?.shortMark);
-            if (name?.length > 0) {
-                let attr = node.getAttribute('data-content')?.match(/>\s*\d+\s?%\s*</g);
-                let lv = typeName.match(/>(\d+)</);
-                if (attr?.length > 0 && lv?.length > 0) {
-                    let mys = (node.getAttribute('data-content')?.match(/\[神秘属性\]/) == null ? 0 : 1);
-                    let id = node.getAttribute('onclick')?.match(/\d+/)[0];
-                    return [ name, lv[1],
-                            attr[0].match(/\d+/)[0], attr[1].match(/\d+/)[0],
-                            attr[2].match(/\d+/)[0], attr[3].match(/\d+/)[0],
-                            mys, id ];
+    function propertyInfoParseNode(node) {
+        if (node?.nodeType == Node.ELEMENT_NODE && node.className?.split(' ').length >= 2 && node.className.indexOf('fyg_mp3') >= 0) {
+            let name = (node.getAttribute('data-original-title') ?? node.getAttribute('title'))?.split(' ')[0].trim();
+            if (g_propertyMap.has(name)) {
+                let text = node.getAttribute('data-content');
+                let lv = node.getAttribute('data-tip-class');
+                let amount = node.innerText;
+                if (text?.length > 0 && lv?.length > 0 && amount?.length > 0) {
+                    return [ name, lv, text, amount, (node.getAttribute('onclick')?.match(/\d+/)?.[0] ?? '-1') ];
                 }
             }
         }
         return null;
     }
 
-    function equipmentNodesToInfoArray(nodes, array) {
+    function propertyNodesToInfoArray(nodes, array) {
         array ??= [];
         for (let i = (nodes?.length ?? 0) - 1; i >= 0; i--) {
-            let e = equipmentInfoParseNode(nodes[i]);
+            let e = propertyInfoParseNode(nodes[i]);
             if (e != null) {
                 array.unshift(e);
             }
@@ -1522,23 +1531,77 @@ function gudaq() {
         return array;
     }
 
-    function equipmentGetLevel(e) {
-        let eq = (Array.isArray(e) ? e : equipmentInfoParseNode(e));
-        if (eq != null) {
-            let p = parseInt(eq[2]) + parseInt(eq[3]) + parseInt(eq[4]) + parseInt(eq[5]) + (parseInt(eq[6]) * 100);
-            for (var i = g_equipmentLevelPoints.length - 1; i > 0 && p < g_equipmentLevelPoints[i]; i--);
-            return i;
+    function propertyInfoComparer(e1, e2) {
+        return g_propertyMap.get(e1[0]).index - g_propertyMap.get(e2[0]).index;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // equipment utilities
+    //
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    const g_equipmentDefaultLevelName = [ '普通', '幸运', '稀有', '史诗', '传奇' ];
+    const g_equipmentLevelPoints = [ 200, 321, 419, 516, 585 ];
+    const g_equipmentLevelBGColor = [ '#e0e8e8', '#c0e0ff', '#c0ffc0', '#ffffc0', '#ffd0d0' ];
+    const g_equipmentLevelStyleClass = [ 'primary', 'info', 'success', 'warning', 'danger' ];
+    var g_equipmentLevelName = g_equipmentDefaultLevelName;
+    function equipmentInfoParseNode(node, ignoreIllegalAttributes) {
+        if (node?.nodeType == Node.ELEMENT_NODE && node.className?.split(' ').length >= 2 && node.className.indexOf('fyg_mp3') >= 0) {
+            let typeName = (node?.getAttribute('data-original-title') ?? node?.getAttribute('title'));
+            if (/Lv.+?>\d+</.test(typeName)) {
+                let name = typeName.substring(typeName.lastIndexOf('>') + 1).trim();
+                name = (g_equipMap.get(name)?.shortMark ?? g_equipMap.get(name.substring(g_equipmentLevelName[0].length))?.shortMark);
+                if (name?.length > 0) {
+                    let attr = node.getAttribute('data-content')?.match(/>\s*\d+\s?%\s*</g);
+                    let lv = typeName.match(/>(\d+)</);
+                    if ((ignoreIllegalAttributes || attr?.length > 0) && lv?.length > 0) {
+                        let mys = (/\[神秘属性\]/.test(node.getAttribute('data-content')) ? 1 : 0);
+                        let id = (node.getAttribute('onclick')?.match(/\d+/)?.[0] ?? '-1');
+                        return [ name, lv[1],
+                                (attr?.[0]?.match(/\d+/)?.[0] ?? '0'),
+                                (attr?.[1]?.match(/\d+/)?.[0] ?? '0'),
+                                (attr?.[2]?.match(/\d+/)?.[0] ?? '0'),
+                                (attr?.[3]?.match(/\d+/)?.[0] ?? '0'),
+                                 mys, id ];
+                    }
+                }
+            }
         }
-        else if ((eq = (new Amulet()).fromNode(e))?.isValid()) {
-            return (eq.level + 2)
+        return null;
+    }
+
+    function equipmentNodesToInfoArray(nodes, array, ignoreIllegalAttributes) {
+        array ??= [];
+        for (let i = (nodes?.length ?? 0) - 1; i >= 0; i--) {
+            let e = equipmentInfoParseNode(nodes[i], ignoreIllegalAttributes);
+            if (e != null) {
+                array.unshift(e);
+            }
         }
-        return -1;
+        return array;
     }
 
     function equipmentInfoComparer(e1, e2) {
         let delta = g_equipMap.get(e1[0]).index - g_equipMap.get(e2[0]).index;
         for (let i = 1; i < 7 && delta == 0; delta = parseInt(e1[i]) - parseInt(e2[i++]));
         return delta;
+    }
+
+    function objectGetLevel(e, ignoreIllegalAttributes) {
+        let eq = (Array.isArray(e) ? e : equipmentInfoParseNode(e, ignoreIllegalAttributes));
+        if (eq?.length >= 7) {
+            let p = parseInt(eq[2]) + parseInt(eq[3]) + parseInt(eq[4]) + parseInt(eq[5]) + (parseInt(eq[6]) * 100);
+            for (var i = g_equipmentLevelPoints.length - 1; i > 0 && p < g_equipmentLevelPoints[i]; i--);
+            return i;
+        }
+        else if ((eq ??= propertyInfoParseNode(e))?.length >= 5) {
+            return g_equipmentLevelStyleClass.indexOf(eq[1].split('-')[1]);
+        }
+        else if ((eq = (e.buffCode > 0 ? e : (new Amulet()).fromNode(e)))?.isValid()) {
+            return (eq.level + 2)
+        }
+        return -1;
     }
 
     function objectNodeComparer(e1, e2) {
@@ -1565,13 +1628,7 @@ function gudaq() {
     }
 
     function objectIsEmptyNode(node) {
-        return (/空/.test(node?.innerText));
-    }
-
-    function objectEmptyNodesCount(nodes) {
-        let nl = (nodes?.length ?? 0);
-        for (var i = nl - 1; i >= 0 && nodes[i].innerText == '空'; i--);
-        return (nl - 1 - i);
+        return (/空/.test(node?.innerText) || !(node?.getAttribute('data-content')?.length > 0));
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1864,6 +1921,21 @@ function gudaq() {
         httpRequestClearAll();
     }
 
+    function genericPopupOnClickOutside(fnProcess, fnParam) {
+        let popup = g_genericPopupContainer.querySelector('#' + g_genericPopupId);
+
+        if (fnProcess != null) {
+            popup.onclick = ((event) => {
+                if (event.target == popup) {
+                    fnProcess(fnParam);
+                }
+            });
+        }
+        else {
+            popup.onclick = null;
+        }
+    }
+
     function genericPopupQuerySelector(selectString) {
         return g_genericPopupContainer.querySelector(selectString);
     }
@@ -1983,6 +2055,19 @@ function gudaq() {
         g_roleMap.set(item.shortMark, item);
     });
 
+    const g_properties = [
+        { index : -1 , id : 3001 , name : '体能刺激药水' },
+        { index : -1 , id : 3002 , name : '锻造材料箱' }
+    ];
+
+    const g_propertyMap = new Map();
+    g_properties.forEach((item, index) => {
+        item.index = index;
+        g_propertyMap.set(item.id, item);
+        g_propertyMap.set(item.id.toString(), item);
+        g_propertyMap.set(item.name, item);
+    });
+
     const g_equipAttributes = [
         { index : 0 , type : 0 , name : '物理攻击' },
         { index : 1 , type : 0 , name : '魔法攻击' },
@@ -2009,7 +2094,8 @@ function gudaq() {
         { index : 22 , type : 0 , name : '伤害反弹' },
         { index : 23 , type : 1 , name : '附加魔穿' },
         { index : 24 , type : 1 , name : '技能概率' },
-        { index : 25 , type : 1 , name : '暴击概率' }
+        { index : 25 , type : 1 , name : '暴击概率' },
+        { index : 26 , type : 1 , name : '力量加血' }
     ];
 
     const g_equipments = [
@@ -2158,6 +2244,17 @@ function gudaq() {
         },
         {
             index : -1,
+            name : '噬魔戒指',
+            type : 1,
+            attributes : [ { attribute : g_equipAttributes[23] , factor : 1 / 2 , additive : 0 },
+                           { attribute : g_equipAttributes[24] , factor : 4 / 5 , additive : 0 },
+                           { attribute : g_equipAttributes[26] , factor : 3 / 20 , additive : 0 , post : Math.trunc },
+                           { attribute : g_equipAttributes[3] , factor : 7 / 100 , additive : 0 , post : Math.trunc } ],
+            merge : null,
+            shortMark : 'DEVOUR'
+        },
+        {
+            index : -1,
             name : '探险者手环',
             type : 1,
             attributes : [ { attribute : g_equipAttributes[5] , factor : 10 , additive : 0 },
@@ -2300,8 +2397,13 @@ function gudaq() {
         let minorAdv = 0;
 
         eqMeta.attributes.forEach((attr, index) => {
-            let d = Math.trunc((eq1[0] * attr.factor + attr.additive) * eq1[index + 1] / 100) -
-                    Math.trunc((eq2[0] * attr.factor + attr.additive) * eq2[index + 1] / 100);
+            let eq1Base = eq1[0] * attr.factor + attr.additive;
+            let eq2Base = eq2[0] * attr.factor + attr.additive;
+            if (attr.post != undefined) {
+                eq1Base = attr.post(eq1Base);
+                eq2Base = attr.post(eq2Base);
+            }
+            let d = Math.trunc(eq1Base * (eq1[index + 1] / 100)) - Math.trunc(eq2Base * (eq2[index + 1] / 100));
             if (setting[index + 1]) {
                 delta.push(0);
                 if (d > 0) {
@@ -2337,8 +2439,11 @@ function gudaq() {
             itemSeparator ??= ', ';
             let sp = '';
             g_equipMap.get(e[0])?.attributes.forEach((attr, index) => {
-                text += `${sp}${attr.attribute.name} +${Math.trunc((e[1] * attr.factor + attr.additive) *
-                                                                    e[index + 2] / 100)}${attr.attribute.type == 0 ? '%' : ''}`;
+                let eBase = e[1] * attr.factor + attr.additive;
+                if (attr.post != undefined) {
+                    eBase = attr.post(eBase);
+                }
+                text += `${sp}${attr.attribute.name} +${Math.trunc(eBase * (e[index + 2] / 100))}${attr.attribute.type == 0 ? '%' : ''}`;
                 sp = itemSeparator;
             });
         }
@@ -2358,25 +2463,25 @@ function gudaq() {
     function equipLoadTheme(theme) {
         if (theme.level?.length > 0) {
             g_equipmentLevelName = theme.level;
-            if (g_useOldEquipName) {
-                g_oldEquipNames.forEach((item) => {
-                    if (!g_equipMap.has(item[1])) {
-                        let eqMeta = g_equipMap.get(item[0]);
-                        if (eqMeta != undefined) {
-                            eqMeta.alias = item[1];
-                            g_equipMap.set(eqMeta.alias, eqMeta);
-                        }
+        }
+        if (g_useOldEquipName) {
+            g_oldEquipNames.forEach((item) => {
+                if (!g_equipMap.has(item[1])) {
+                    let eqMeta = g_equipMap.get(item[0]);
+                    if (eqMeta != undefined) {
+                        eqMeta.alias = item[1];
+                        g_equipMap.set(eqMeta.alias, eqMeta);
                     }
-                });
-            }
-            if (g_useThemeEquipName) {
-                for(let item in theme) {
-                    if (/^[a-z]+\d+$/.test(item) && theme[item].length >= 5 && theme[item][3]?.length > 0 && !g_equipMap.has(theme[item][3])) {
-                        let eqMeta = g_equipMap.get(theme[item][2]);
-                        if (eqMeta != undefined) {
-                            eqMeta.alias = theme[item][3];
-                            g_equipMap.set(eqMeta.alias, eqMeta);
-                        }
+                }
+            });
+        }
+        if (g_useThemeEquipName) {
+            for(let item in theme) {
+                if (/^[a-z]+\d+$/.test(item) && theme[item].length >= 5 && theme[item][3]?.length > 0 && !g_equipMap.has(theme[item][3])) {
+                    let eqMeta = g_equipMap.get(theme[item][2]);
+                    if (eqMeta != undefined) {
+                        eqMeta.alias = theme[item][3];
+                        g_equipMap.set(eqMeta.alias, eqMeta);
                     }
                 }
             }
@@ -2395,6 +2500,7 @@ function gudaq() {
         { index : -1 , id : 204 , name : '鲜血渴望' , points : 20 , shortMark : 'XUE' },
         { index : -1 , id : 205 , name : '削骨之痛' , points : 20 , shortMark : 'XIAO' },
         { index : -1 , id : 206 , name : '圣盾祝福' , points : 20 , shortMark : 'SHENG' },
+        { index : -1 , id : 207 , name : '恶意抽奖' , points : 20 , shortMark : 'E' },
         { index : -1 , id : 301 , name : '伤口恶化' , points : 30 , shortMark : 'SHANG' },
         { index : -1 , id : 302 , name : '精神创伤' , points : 30 , shortMark : 'SHEN' },
         { index : -1 , id : 303 , name : '铁甲尖刺' , points : 30 , shortMark : 'CI' },
@@ -2402,6 +2508,7 @@ function gudaq() {
         { index : -1 , id : 305 , name : '热血战魂' , points : 30 , shortMark : 'RE' },
         { index : -1 , id : 306 , name : '点到为止' , points : 30 , shortMark : 'DIAN' },
         { index : -1 , id : 307 , name : '午时已到' , points : 30 , shortMark : 'WU' },
+        { index : -1 , id : 308 , name : '纸薄命硬' , points : 30 , shortMark : 'ZHI' },
         { index : -1 , id : 401 , name : '沸血之志' , points : 100 , shortMark : 'FEI' },
         { index : -1 , id : 402 , name : '波澜不惊' , points : 100 , shortMark : 'BO' },
         { index : -1 , id : 403 , name : '飓风之力' , points : 100 , shortMark : 'JU' },
@@ -2486,6 +2593,111 @@ function gudaq() {
         g_configMap.set(item.id, item);
     });
 
+    function modifyConfig(configs, title) {
+        configs ??= g_configs;
+        title ??= '插件设置';
+
+        let fixedContent =
+            '<div style="padding:20px 10px 10px 0px;color:blue;font-size:15px;"><b>请勿随意修改配置项，' +
+            `除非您知道它的准确用途并且设置为正确的值，否则可能导致插件工作异常<span id="${g_genericPopupInformationTipsId}" ` +
+            'style="float:right;color:red;"></span></b></div>';
+        let mainContent =
+            `<style> #config-table { width:100%; }
+                         #config-table th { width:20%; }
+                         #config-table th.config-th-name { width:60%; }
+                         #config-table th.config-th-button { width:20%; }
+                         #config-table button.config-restore-value { width:49%; float:right; margin-left:1px; }
+                         table tr.alt { background-color:${g_genericPopupBackgroundColorAlt}; } </style>
+                 <div class="${g_genericPopupTopLineDivClass}"><table id="config-table">
+                 <tr class="alt"><th class="config-th-name">配置项</th><th>值</th><th class="config-th-button"></th></tr></table><div>`;
+
+        genericPopupSetFixedContent(fixedContent);
+        genericPopupSetContent(title, mainContent);
+
+        let configTable = genericPopupQuerySelector('#config-table');
+        configs.forEach((item, index) => {
+            let tr = document.createElement('tr');
+            tr.className = ('config-tr' + ((index & 1) == 0 ? '' : ' alt'));
+            tr.setAttribute('config-item', item.id);
+            tr.innerHTML =
+                `<td><div data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content="${item.tips}">${item.name}<div></td>
+                     <td><div data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content="${item.tips}">
+                         <input type="text" style="display:inline-block;width:100%;" value="${item.value}" /><div></td>
+                     <td><button type="button" class="config-restore-value" title="重置为当前配置" value="${item.value}">当前</button>` +
+                `<button type="button" class="config-restore-value" title="重置为默认配置" value="${item.defaultValue}">默认</button></td>`;
+            tr.children[1].children[0].children[0].oninput = tr.children[1].children[0].children[0].onchange = validateInput;
+            configTable.appendChild(tr);
+        });
+        function validateInput(e) {
+            let tr = e.target.parentNode.parentNode.parentNode;
+            let cfg = g_configMap.get(tr.getAttribute('config-item'));
+            tr.style.color = ((cfg.validate?.call(null, e.target.value) ?? true) ? 'black' : 'red');
+        }
+
+        configTable.querySelectorAll('button.config-restore-value').forEach((btn) => { btn.onclick = restoreValue; });
+        function restoreValue(e) {
+            let input = e.target.parentNode.parentNode.children[1].children[0].children[0];
+            input.value = e.target.value;
+            input.oninput({ target : input });
+            genericPopupShowInformationTips('配置项已' + e.target.title, 5000);
+        }
+
+        $('#config-table div[data-toggle="popover"]').popover();
+
+        genericPopupAddButton('重置为当前配置', 0, restoreValueAll, true).setAttribute('config-restore-default-all', 0);
+        genericPopupAddButton('重置为默认配置', 0, restoreValueAll, true).setAttribute('config-restore-default-all', 1);
+        function restoreValueAll(e) {
+            let defaultValue = (e.target.getAttribute('config-restore-default-all') == '1');
+            configTable.querySelectorAll('tr.config-tr').forEach((row) => {
+                let id = row.getAttribute('config-item');
+                let cfg = g_configMap.get(id);
+                let input = row.children[1].children[0].children[0];
+                input.value = (defaultValue ? cfg.defaultValue : (cfg.value ?? cfg.defaultValue));
+                input.oninput({ target : input });
+            });
+            genericPopupShowInformationTips('全部配置项已' + e.target.innerText, 5000);
+        }
+
+        genericPopupAddButton('保存', 80, saveConfig, false).setAttribute('config-save-config', 1);
+        genericPopupAddButton('确认', 80, saveConfig, false).setAttribute('config-save-config', 0);
+        function saveConfig(e) {
+            let close = (e.target.getAttribute('config-save-config') == '0');
+            let udata = loadUserConfigData();
+            let config = (udata?.config ?? {});
+            let error = [];
+            configTable.querySelectorAll('tr.config-tr').forEach((row) => {
+                let id = row.getAttribute('config-item');
+                let cfg = g_configMap.get(id);
+                let value = row.children[1].children[0].children[0].value;
+                if (cfg.validate?.call(null, value) ?? true) {
+                    config[id] = cfg.value = row.children[2].children[0].value = (cfg.onchange?.call(null, value) ?? value);
+                }
+                else {
+                    error.push(cfg.name);
+                }
+            });
+
+            udata.config = config;
+            saveUserConfigData(udata);
+
+            if (error.length > 0) {
+                alert('以下配置项输入内容有误，如有必要请重新设置：\n\n    [ ' + error.join(' ]\n    [ ') + ' ]');
+            }
+            else if (close) {
+                genericPopupClose(true, true);
+            }
+            else {
+                genericPopupShowInformationTips('配置已保存', 5000);
+            }
+        }
+        genericPopupAddCloseButton(80);
+
+        genericPopupSetContentSize(Math.min(configs.length * 28 + 60, Math.max(window.innerHeight - 200, 400)),
+                                   Math.min(600, Math.max(window.innerWidth - 100, 600)),
+                                   true);
+        genericPopupShowModal(true);
+    }
+
     function initiatizeConfig() {
         let udata = loadUserConfigData();
         if (udata == null) {
@@ -2493,42 +2705,45 @@ function gudaq() {
                 dataIndex : { battleInfoNow : '' , battleInfoBefore : '' , battleInfoBack : '' },
                 dataBeachSift : {},
                 dataBind : {},
-                config : {}
+                config : {},
+                calculatorTemplatePVE : {}
             };
         }
-        if (udata.dataIndex == null) {
-            udata.dataIndex = { battleInfoNow : '' , battleInfoBefore : '' , battleInfoBack : '' };
-        }
-        if (udata.dataBeachSift == null) {
-            udata.dataBeachSift = {};
-        }
-        if (udata.dataBind == null) {
-            udata.dataBind = {};
-        }
-        if (udata.config == null) {
-            udata.config = {};
-        }
-        if (udata.calculatorTemplatePVE == null) {
-            udata.calculatorTemplatePVE = {};
-        }
-        for (let key in udata.dataBeachSift) {
-            if (!g_equipMap.has(key) && key != 'ignoreMysEquip' && key != 'ignoreEquipLevel') {
-                delete udata.dataBeachSift[key];
+        else {
+            if (udata.dataIndex == null) {
+                udata.dataIndex = { battleInfoNow : '' , battleInfoBefore : '' , battleInfoBack : '' };
             }
-        }
-        for (let key in udata.dataBind) {
-            if (!g_roleMap.has(key)) {
-                delete udata.dataBind[key];
+            if (udata.dataBeachSift == null) {
+                udata.dataBeachSift = {};
             }
-        }
-        for (let key in udata.config) {
-            if (!g_configMap.has(key)) {
-                delete udata.config[key];
+            if (udata.dataBind == null) {
+                udata.dataBind = {};
             }
-        }
-        for (let key in udata.calculatorTemplatePVE) {
-            if (!g_roleMap.has(key)) {
-                delete udata.calculatorTemplatePVE[key];
+            if (udata.config == null) {
+                udata.config = {};
+            }
+            if (udata.calculatorTemplatePVE == null) {
+                udata.calculatorTemplatePVE = {};
+            }
+            for (let key in udata.dataBeachSift) {
+                if (!g_equipMap.has(key) && key != 'ignoreMysEquip' && key != 'ignoreEquipLevel') {
+                    delete udata.dataBeachSift[key];
+                }
+            }
+            for (let key in udata.dataBind) {
+                if (!g_roleMap.has(key)) {
+                    delete udata.dataBind[key];
+                }
+            }
+            for (let key in udata.config) {
+                if (!g_configMap.has(key)) {
+                    delete udata.config[key];
+                }
+            }
+            for (let key in udata.calculatorTemplatePVE) {
+                if (!g_roleMap.has(key)) {
+                    delete udata.calculatorTemplatePVE[key];
+                }
             }
         }
 
@@ -2546,7 +2761,7 @@ function gudaq() {
             let cb = document.querySelector('input.iconpack-switch');
             if (cb != null) {
                 g_useOldEquipName = cb.checked;
-                g_useThemeEquipName = (document.querySelector('input.themepack-switch')?.checked ?? false);
+                g_useThemeEquipName = (document.querySelector('input.themepack-equip')?.checked ?? false);
                 try {
                     let theme = JSON.parse(sessionStorage.getItem('ThemePack') ?? '{}');
                     if (theme?.url != undefined) {
@@ -2656,7 +2871,7 @@ function gudaq() {
                                             }
                                         }
                                     }
-                                    g_stoneFunctionParams[i].action = true;
+                                    g_stoneFunctionParams[i].exec = true;
                                     forge++;
                                 }
                             }
@@ -2691,108 +2906,7 @@ function gudaq() {
     ////////////////////////////////////////////////////////////////////////////////////////////////////
 
     if (window.location.pathname == g_guguzhenHome) {
-        function doConfig() {
-            let fixedContent =
-                '<div style="padding:20px 10px 10px 0px;color:blue;font-size:15px;"><b>请勿随意修改配置项，' +
-                `除非您知道它的准确用途并且设置为正确的值，否则可能导致插件工作异常<span id="${g_genericPopupInformationTipsId}" ` +
-                'style="float:right;color:red;"></span></b></div>';
-            let mainContent =
-                `<style> #config-table { width:100%; }
-                         #config-table th { width:20%; }
-                         #config-table th.config-th-name { width:60%; }
-                         #config-table th.config-th-button { width:20%; }
-                         #config-table button.config-restore-value { width:50%; }
-                         table tr.alt { background-color:${g_genericPopupBackgroundColorAlt}; } </style>
-                 <div class="${g_genericPopupTopLineDivClass}"><table id="config-table">
-                 <tr class="alt"><th class="config-th-name">配置项</th><th>值</th><th class="config-th-button"></th></tr></table><div>`;
-
-            genericPopupSetFixedContent(fixedContent);
-            genericPopupSetContent('插件设置', mainContent);
-
-            let configTable = genericPopupQuerySelector('#config-table');
-            g_configs.forEach((item, index) => {
-                let tr = document.createElement('tr');
-                tr.className = ('config-tr' + ((index & 1) == 0 ? '' : ' alt'));
-                tr.setAttribute('config-item', item.id);
-                tr.innerHTML =
-                    `<td><div data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content="${item.tips}">${item.name}<div></td>
-                     <td><div data-toggle="popover" data-placement="bottom" data-trigger="hover" data-content="${item.tips}">
-                         <input type="text" style="display:inline-block;width:100%;" value="${item.value}" /><div></td>
-                     <td><button type="button" class="config-restore-value" title="重置为当前配置" value="${item.value}">当前</button>` +
-                        `<button type="button" class="config-restore-value" title="重置为默认配置" value="${item.defaultValue}">默认</button></td>`;
-                tr.children[1].children[0].children[0].oninput = tr.children[1].children[0].children[0].onchange = validateInput;
-                configTable.appendChild(tr);
-            });
-            function validateInput(e) {
-                let tr = e.target.parentNode.parentNode.parentNode;
-                let cfg = g_configMap.get(tr.getAttribute('config-item'));
-                tr.style.color = ((cfg.validate?.call(null, e.target.value) ?? true) ? 'black' : 'red');
-            }
-
-            configTable.querySelectorAll('button.config-restore-value').forEach((btn) => { btn.onclick = restoreValue; });
-            function restoreValue(e) {
-                let input = e.target.parentNode.parentNode.children[1].children[0].children[0];
-                input.value = e.target.value;
-                input.oninput({ target : input });
-                genericPopupShowInformationTips('配置项已' + e.target.title, 5000);
-            }
-
-            $('#config-table div[data-toggle="popover"]').popover();
-
-            genericPopupAddButton('重置为当前配置', 0, restoreValueAll, true).setAttribute('config-restore-default-all', 0);
-            genericPopupAddButton('重置为默认配置', 0, restoreValueAll, true).setAttribute('config-restore-default-all', 1);
-            function restoreValueAll(e) {
-                let defaultValue = (e.target.getAttribute('config-restore-default-all') == '1');
-                configTable.querySelectorAll('tr.config-tr').forEach((row) => {
-                    let id = row.getAttribute('config-item');
-                    let cfg = g_configMap.get(id);
-                    let input = row.children[1].children[0].children[0];
-                    input.value = (defaultValue ? cfg.defaultValue : (cfg.value ?? cfg.defaultValue));
-                    input.oninput({ target : input });
-                });
-                genericPopupShowInformationTips('全部配置项已' + e.target.innerText, 5000);
-            }
-
-            genericPopupAddButton('保存', 80, saveConfig, false).setAttribute('config-save-config', 1);
-            genericPopupAddButton('确认', 80, saveConfig, false).setAttribute('config-save-config', 0);
-            function saveConfig(e) {
-                let close = (e.target.getAttribute('config-save-config') == '0');
-                let udata = loadUserConfigData();
-                let config = (udata?.config ?? {});
-                let error = [];
-                configTable.querySelectorAll('tr.config-tr').forEach((row) => {
-                    let id = row.getAttribute('config-item');
-                    let cfg = g_configMap.get(id);
-                    let value = row.children[1].children[0].children[0].value;
-                    if (cfg.validate?.call(null, value) ?? true) {
-                        config[id] = cfg.value = row.children[2].children[0].value = (cfg.onchange?.call(null, value) ?? value);
-                    }
-                    else {
-                        error.push(cfg.name);
-                    }
-                });
-
-                udata.config = config;
-                saveUserConfigData(udata);
-
-                if (error.length > 0) {
-                    alert('以下配置项输入内容有误，如有必要请重新设置：\n\n    [ ' + error.join(' ]\n    [ ') + ' ]');
-                }
-                else if (close) {
-                    genericPopupClose(true, true);
-                }
-                else {
-                    genericPopupShowInformationTips('配置已保存', 5000);
-                }
-            }
-            genericPopupAddCloseButton(80);
-
-            genericPopupSetContentSize(Math.min(g_configs.length * 28 + 60, Math.max(window.innerHeight - 200, 400)),
-                                       Math.min(600, Math.max(window.innerWidth - 100, 600)),
-                                       true);
-            genericPopupShowModal(true);
-        }
-
+        const USER_DATA_xPORT_GM_KEY = g_kfUser + '_export_string';
         const USER_DATA_xPORT_SEPARATOR = '\n';
 
         function importUserConfigData() {
@@ -2803,6 +2917,27 @@ function gudaq() {
                  <div style="height:330px;"><textarea id="user_data_persistence_string"
                  style="height:100%;width:100%;resize:none;"></textarea></div>`);
 
+            /*
+            genericPopupAddButton(
+                '从全局存储中读取',
+                0,
+                ((e) => {
+                    e.target.disabled = 'disabled';
+                    genericPopupQuerySelector('#user_data_persistence_string').value = GM_getValue(USER_DATA_xPORT_GM_KEY, '');
+                    let tipContainer = genericPopupQuerySelector('#user_data_import_tip');
+                    let tipColor = tipContainer.style.color;
+                    let tipString = tipContainer.innerText;
+                    tipContainer.style.color = '#ff0000';
+                    tipContainer.innerText = (genericPopupQuerySelector('#user_data_persistence_string').value.length > g_kfUser.length ?
+                                              '已从全局存储中读取成功' : '未能读取导出数据，请确保已在“数据导出”功能中写入全局存储');
+                    setTimeout((() => {
+                        tipContainer.style.color = tipColor;
+                        tipContainer.innerText = tipString;
+                        e.target.disabled = '';
+                    }), 3000);
+                }),
+                true);
+            */
             genericPopupAddButton(
                 '执行导入',
                 0,
@@ -2871,6 +3006,26 @@ function gudaq() {
                  <div style="height:330px;"><textarea id="user_data_persistence_string" readonly="true"
                  style="height:100%;width:100%;resize:none;"></textarea></div>`);
 
+            /*
+            genericPopupAddButton(
+                '写入全局存储',
+                0,
+                ((e) => {
+                    e.target.disabled = 'disabled';
+                    GM_setValue(USER_DATA_xPORT_GM_KEY, genericPopupQuerySelector('#user_data_persistence_string').value);
+                    let tipContainer = genericPopupQuerySelector('#user_data_export_tip');
+                    let tipColor = tipContainer.style.color;
+                    let tipString = tipContainer.innerText;
+                    tipContainer.style.color = '#ff0000';
+                    tipContainer.innerText = '导出内容已写入全局存储';
+                    setTimeout((() => {
+                        tipContainer.style.color = tipColor;
+                        tipContainer.innerText = tipString;
+                        e.target.disabled = '';
+                    }), 3000);
+                }),
+                true);
+            */
             genericPopupAddButton(
                 '复制导出内容至剪贴板',
                 0,
@@ -2965,30 +3120,22 @@ function gudaq() {
                 configBtn.style.height = '30px';
                 configBtn.style.width = '100%';
                 configBtn.style.marginBottom = '1px';
-                configBtn.onclick = (() => {
-                    doConfig();
-                });
+                configBtn.onclick = (() => { modifyConfig(); });
                 globalDataBtnContainer.appendChild(configBtn);
 
                 let importBtn = configBtn.cloneNode(true);
                 importBtn.innerHTML = '导入用户配置数据';
-                importBtn.onclick = (() => {
-                    importUserConfigData();
-                });
+                importBtn.onclick = (() => { importUserConfigData(); });
                 globalDataBtnContainer.appendChild(importBtn);
 
                 let exportBtn = configBtn.cloneNode(true);
                 exportBtn.innerHTML = '导出用户配置数据';
-                exportBtn.onclick = (() => {
-                    exportUserConfigData();
-                });
+                exportBtn.onclick = (() => { exportUserConfigData(); });
                 globalDataBtnContainer.appendChild(exportBtn);
 
                 let eraseBtn = configBtn.cloneNode(true);
                 eraseBtn.innerHTML = '清除用户数据';
-                eraseBtn.onclick = (() => {
-                    clearUserData();
-                });
+                eraseBtn.onclick = (() => { clearUserData(); });
                 globalDataBtnContainer.appendChild(eraseBtn);
 
                 px.parentNode.appendChild(globalDataBtnContainer);
@@ -3018,9 +3165,9 @@ function gudaq() {
 
                 const bagQueryString = '#backpacks > div.alert-danger';
                 const storeQueryString = '#backpacks > div.alert-success';
-                const cardingObjectsQueryString = '#carding > div.row > div.fyg_tc > button.fyg_mp3';
-                const bagObjectsQueryString = '#backpacks > div.alert-danger > button.fyg_mp3';
-                const storeObjectsQueryString = '#backpacks > div.alert-success > button.fyg_mp3';
+                const cardingObjectsQueryString = '#carding > div.row > div.fyg_tc > button.btn.fyg_mp3';
+                const bagObjectsQueryString = '#backpacks > div.alert-danger > button.btn.fyg_mp3';
+                const storeObjectsQueryString = '#backpacks > div.alert-success > button.btn.fyg_mp3';
                 const storeButtonId = 'collapse-backpacks-store';
 
                 let equipmentDiv = document.createElement('div');
@@ -3036,6 +3183,8 @@ function gudaq() {
                         <label for="equipment_BG" style="margin-right:15px;cursor:pointer;">使用深色背景</label>
                         <button type="button" id="objects_Cleanup">清理库存</button></p>
                      <div id="equipment_ObjectContainer" style="display:block;height:0px;">
+                     <p><button type="button" class="btn btn-block collapsed" data-toggle="collapse" data-target="#eq5">道具 ▼</button></p>
+                        <div class="in" id="eq5"></div>
                      <p><button type="button" class="btn btn-block collapsed" data-toggle="collapse" data-target="#eq4">护符 ▼</button></p>
                         <div class="in" id="eq4"></div>
                      <p><button type="button" class="btn btn-block collapsed" data-toggle="collapse" data-target="#eq0">武器装备 ▼</button></p>
@@ -3078,19 +3227,20 @@ function gudaq() {
 
                     let cancelled = false;
                     function cancelProcess() {
-                        cancelled = true;
-                        httpRequestAbortAll();
-                        refreshEquipmentPage(() => { genericPopupClose(true); });
+                        if (!cancelled) {
+                            cancelled = true;
+                            httpRequestAbortAll();
+                            refreshEquipmentPage(() => { genericPopupClose(true); });
+                        }
                     }
 
                     function postProcess(closeCountDown) {
                         if (closeCountDown > 0) {
+                            genericPopupOnClickOutside(cancelProcess);
                             let timer = setInterval(() => {
                                 if (cancelled || --closeCountDown == 0) {
                                     clearInterval(timer);
-                                    if (!cancelled) {
-                                        cancelProcess();
-                                    }
+                                    cancelProcess();
                                 }
                                 else {
                                     genericPopupShowInformationTips(`所有操作已完成，窗口将在 ${closeCountDown} 秒后关闭`, 0);
@@ -3141,11 +3291,19 @@ function gudaq() {
 
                     function processAmulets() {
                         let amulets = [];
+                        let groupItem = 0;
                         genericPopupQuerySelectorAll('table.amulet-list input.equip-checkbox.amulet-item').forEach((e) => {
                             if (e.checked) {
+                                if (e.hasAttribute('group-item')) {
+                                    groupItem++;
+                                }
                                 amulets.push((new Amulet()).fromBuffText(e.getAttribute('original-item')));
                             }
                         });
+                        if (!(groupItem == 0 || confirm(`选中的护符中有 ${groupItem} 个可能已加入护符组，继续销毁吗？`))) {
+                            cancelProcess();
+                            return;
+                        }
 
                         let bag = 0;
                         pirlAmulets();
@@ -3291,7 +3449,7 @@ function gudaq() {
                         tr.style.backgroundColor = objectTypeColor[item.type];
                         tr.innerHTML =
                             `<td><input type="checkbox" class="equip-checkbox amulet-item" id="amulet-${item.id}"
-                                        original-item="${item.formatBuffText()}" />
+                                        original-item="${item.formatBuffText()}"${gi >= 0 ? ' group-item' : ''} />
                                  <label for="amulet-${item.id}" style="margin-left:5px;cursor:pointer;">
                                         ${gi >= 0 ? '★ ' : ''}${item.formatName()}</label></td>
                              <td>${item.formatBuff()}</td>`;
@@ -3308,7 +3466,7 @@ function gudaq() {
                         return -equipmentInfoComparer(e1, e2);
                     }).forEach((item) => {
                         let eqMeta = g_equipMap.get(item[0]);
-                        let lv = equipmentGetLevel(item);
+                        let lv = objectGetLevel(item);
                         let tr = document.createElement('tr');
                         tr.style.backgroundColor = g_equipmentLevelBGColor[lv];
                         tr.innerHTML =
@@ -3327,6 +3485,7 @@ function gudaq() {
                     }
 
                     let btnGo = genericPopupAddButton('开始', 80, (() => {
+                        genericPopupOnClickOutside(null);
                         operationEnabler(false);
                         genericPopupQuerySelector('#disclaimer-check').disabled = 'disabled';
                         processEquips();
@@ -3350,7 +3509,7 @@ function gudaq() {
                     genericPopupSetContentSize(Math.min((objectsCount * 31) + (6 * 104), Math.max(window.innerHeight - 400, 400)),
                                                Math.min(1000, Math.max(window.innerWidth - 200, 600)),
                                                true);
-                    genericPopupShowModal(false);
+                    genericPopupShowModal(true);
                 }
 
                 ////////////////////////////////////////////////////////////////////////////////
@@ -3435,7 +3594,8 @@ function gudaq() {
                         'background-color': bg ? 'black' : 'white'
                     });
                     $('#equipmentDiv .popover-content-show').css({
-                        'background-color': bg ? 'black' : 'white'
+                        'background-color': bg ? 'black' : 'white',
+                        'color': bg ? 'white' : 'black'
                     });
                     $('#equipmentDiv .popover-title').css({
                         'color': bg ? 'black' : 'white'
@@ -3493,24 +3653,29 @@ function gudaq() {
                                 for (let i = eqbtns.length - 1; i >= 0; i--) {
                                     if (objectIsEmptyNode(eqbtns[i]) || eqbtns[i].className?.indexOf('popover') >= 0) {
                                         eqbtns.splice(i, 1);
-                                        break;
                                     }
                                 }
 
                                 let ineqBackpackDiv =
                                     '<div class="backpackDiv" style="padding:10px;margin-bottom:10px;"></div>' +
-                                    '<div class="storeDiv" style="padding:10px;"></div>';
+                                    '<div class="storeDiv" style="padding:10px;margin-bottom:10px;"></div>';
                                 let eqDivs = [ equipmentDiv.querySelector('#eq0'),
                                                equipmentDiv.querySelector('#eq1'),
                                                equipmentDiv.querySelector('#eq2'),
                                                equipmentDiv.querySelector('#eq3'),
-                                               equipmentDiv.querySelector('#eq4') ];
+                                               equipmentDiv.querySelector('#eq4'),
+                                               equipmentDiv.querySelector('#eq5')
+                                             ];
                                 eqDivs.forEach((item) => { item.innerHTML = ineqBackpackDiv; });
-                                let ineq = 0;
 
+                                const store = [ '', '【仓】'];
                                 eqbtns.forEach((btn) => {
+                                    let equipInfo = equipmentInfoParseNode(btn, true);
+                                    let amulet = (new Amulet()).fromNode(btn);
+                                    let propInfo = propertyInfoParseNode(btn);
+                                    let styleClass = g_equipmentLevelStyleClass[objectGetLevel(equipInfo ?? amulet ?? propInfo)];
                                     let btn0 = document.createElement('button');
-                                    btn0.className = `btn btn-light ${g_equipmentLevelTipClass[equipmentGetLevel(btn)]}`;
+                                    btn0.className = `btn btn-light popover-${styleClass}`;
                                     btn0.style.minWidth = '200px';
                                     btn0.style.marginRight = '5px';
                                     btn0.style.marginBottom = '5px';
@@ -3520,41 +3685,38 @@ function gudaq() {
                                     btn0.style.lineHeight = '150%';
                                     btn0.setAttribute('onclick', btn.getAttribute('onclick'));
 
-                                    let storeText = '';
-                                    if (btn.dataset.instore == 1) {
-                                        storeText = '【仓】';
-                                    }
-
-                                    let enhancements = ' +' + btn.innerText.trim();
-                                    let typeName = (btn.getAttribute('data-original-title') ?? btn.getAttribute('title'));
-                                    if (/Lv.+?>\d+</.test(typeName)) {
-                                        enhancements = '';
-                                    }
-
+                                    let enhancements = (amulet != null ? ' +' + btn.innerText.trim() : '');
+                                    let storeText = store[btn.dataset.instore ?? 0];
                                     btn0.innerHTML =
-                                        `<h3 class="popover-title" style="color:white;background-color: ${btn0.style.borderColor}">
-                                         ${storeText}${btn.dataset.originalTitle}${enhancements}</h3>
+                                        `<h3 class="popover-title bg-${styleClass}">${storeText}${btn.dataset.originalTitle}${enhancements}</h3>
                                          <div class="popover-content-show" style="padding:10px 10px 0px 10px;">${btn.dataset.content}</div>`;
 
-                                    if (btn0.children[1].lastChild?.nodeType == 3) { //清除背景介绍文本
-                                        btn0.children[1].lastChild.remove();
+                                    if (equipInfo != null && btn0.lastChild.lastChild?.nodeType != Node.ELEMENT_NODE) {
+                                        btn0.lastChild.lastChild?.remove();
                                     }
 
-                                    if (enhancements.length > 0) {
+                                    let ineq = 5;
+                                    if (propInfo != null) {
+                                        btn0.lastChild.style.cssText =
+                                            'max-width:180px;padding:10px;text-align:center;white-space:pre-line;word-break:break-all;';
+                                    }
+                                    else if (amulet != null) {
                                         ineq = 4;
                                     }
-                                    else {
-                                        let a = g_equipments[parseInt(btn.dataset.metaIndex)];
-                                        if (a == null) {
-                                            let e = equipmentInfoParseNode(btn);
-                                            a = g_equipMap.get(e?.[0]);
-                                        }
-                                        if ((ineq = (a?.type ?? 4)) < 4) {
-                                            btn0.className += ' btn-equipment';
-                                        }
+                                    else if (equipInfo != null) {
+                                        btn0.className += ' btn-equipment';
+                                        ineq = g_equipMap.get(equipInfo[0]).type;
                                     }
 
                                     (storeText == '' ? eqDivs[ineq].firstChild : eqDivs[ineq].firstChild.nextSibling).appendChild(btn0);
+                                });
+
+                                eqDivs.forEach((div) => {
+                                    for (let area of div.children) {
+                                        if (area.children.length == 0) {
+                                            area.style.display = 'none';
+                                        }
+                                    }
                                 });
 
                                 function inputAmuletGroupName(defaultGroupName) {
@@ -4155,7 +4317,7 @@ function gudaq() {
                                         }),
                                         false);
 
-                                    genericPopupAddButton(
+                                    let btnCancel = genericPopupAddButton(
                                         '取消',
                                         80,
                                         (() => {
@@ -4169,6 +4331,7 @@ function gudaq() {
                                                                Math.min(1000, Math.max(window.innerWidth - 100, 600)),
                                                                false);
                                     genericPopupShowModal(false);
+                                    genericPopupOnClickOutside(btnCancel.onclick);
 
                                     divHeightAdjustment(amuletList.parentNode);
                                     divHeightAdjustment(groupAmuletList.parentNode);
@@ -4371,7 +4534,7 @@ function gudaq() {
                         httpRequestClearAll();
                         genericPopupClose();
 
-                        // refresh #carding & #backpacks
+                        // refresh #carding
                         cding();
                     }
 
@@ -4655,7 +4818,7 @@ function gudaq() {
 
                             equipment.forEach((item) => {
                                 let eqMeta = g_equipMap.get(item[0]);
-                                let lv = equipmentGetLevel(item);
+                                let lv = objectGetLevel(item);
                                 let op = document.createElement('option');
                                 op.style.backgroundColor = g_equipmentLevelBGColor[lv];
                                 op.innerText =
@@ -5428,7 +5591,7 @@ function gudaq() {
                                 return -equipmentInfoComparer(e1, e2);
                             }).forEach((item) => {
                                 let eqMeta = g_equipMap.get(item[0]);
-                                let lv = equipmentGetLevel(item);
+                                let lv = objectGetLevel(item);
                                 let tr = document.createElement('tr');
                                 tr.style.backgroundColor = g_equipmentLevelBGColor[lv];
                                 tr.innerHTML =
@@ -6176,7 +6339,7 @@ function gudaq() {
                         if (stoneInfos?.length > 0) {
                             let stoneList = opSelectors[2];
                             for (let stone of stoneInfos) {
-                                let infos = stone.innerHTML?.match(/(.石)（上限(\d+)）.+?>(\d+)</m);
+                                let infos = stone.innerHTML?.match(/(.+?)（.+?(\d+)）.+?>(\d+)</m);
                                 if (infos?.length == 4 && parseInt(infos[2]) != parseInt(infos[3])) {
                                     let op = document.createElement('option');
                                     op.innerText = '收集：' + infos[1];
@@ -6215,15 +6378,14 @@ function gudaq() {
                         case 0: {
                             calcBtn.disabled = '';
                             calcBtn.onclick = (() => {
-                                try {
-                                    let equip = document.querySelectorAll(cardingObjectsQueryString);
-                                    let bag = Array.from(document.querySelectorAll(bagObjectsQueryString)).concat(
-                                              Array.from(document.querySelectorAll(storeObjectsQueryString)));
-                                    let bagdata = equipmentNodesToInfoArray(bag);
-                                    let data = equipmentNodesToInfoArray(equip);
-                                    bagdata = bagdata.concat(data).sort(equipmentInfoComparer);
-                                    calcDiv.innerHTML =
-                                        `<div class="pop_main" style="padding:0px 10px;"><a href="###">× 折叠 ×</a>
+                                let equip = document.querySelectorAll(cardingObjectsQueryString);
+                                let bag = Array.from(document.querySelectorAll(bagObjectsQueryString)).concat(
+                                    Array.from(document.querySelectorAll(storeObjectsQueryString)));
+                                let bagdata = equipmentNodesToInfoArray(bag);
+                                let data = equipmentNodesToInfoArray(equip);
+                                bagdata = bagdata.concat(data).sort(equipmentInfoComparer);
+                                calcDiv.innerHTML =
+                                    `<div class="pop_main" style="padding:0px 10px;"><a href="###">× 折叠 ×</a>
                                          <div class="pop_con">
                                          <div style="width:200px;padding:5px;margin-top:10px;margin-bottom:10px;
                                               color:purple;border:1px solid grey;">护符：</div>
@@ -6239,28 +6401,24 @@ function gudaq() {
                                          ${new Array(bagdata.length + 1).fill('<div class="pop_text"></div>').join('')}<hr></div>
                                          <a href="###">× 折叠 ×</a></div>`;
 
-                                    $('.pop_main a').click(() => {
-                                        $('.pop_main').hide()
-                                    })
-                                    let text = $('.pop_text');
-                                    let bagAmulets = [];
-                                    amuletNodesToArray(document.querySelectorAll(bagObjectsQueryString), bagAmulets);
-                                    let bagGroup = amuletCreateGroupFromArray('temp', bagAmulets);
-                                    if (bagGroup?.isValid()) {
-                                        text[0].innerText = `AMULET ${bagGroup.formatBuffShortMark(' ', ' ', false)} ENDAMULET`;
-                                    }
-                                    text[1].innerText = `${data[0].slice(0, -1).join(' ')}`;
-                                    text[2].innerText = `${data[1].slice(0, -1).join(' ')}`;
-                                    text[3].innerText = `${data[2].slice(0, -1).join(' ')}`;
-                                    text[4].innerText = `${data[3].slice(0, -1).join(' ')}`;
-                                    for (let i = 0; i < bagdata.length; i++) {
-                                        text[5 + i].innerText = `${bagdata[i].slice(0, -1).join(' ')}`;
-                                    }
-                                    $('.pop_main').show();
+                                $('.pop_main a').click(() => {
+                                    $('.pop_main').hide()
+                                })
+                                let text = $('.pop_text');
+                                let bagAmulets = [];
+                                amuletNodesToArray(document.querySelectorAll(bagObjectsQueryString), bagAmulets);
+                                let bagGroup = amuletCreateGroupFromArray('temp', bagAmulets);
+                                if (bagGroup?.isValid()) {
+                                    text[0].innerText = `AMULET ${bagGroup.formatBuffShortMark(' ', ' ', false)} ENDAMULET`;
                                 }
-                                catch (err) {
-                                    console.log(err);
+                                text[1].innerText = `${data[0].slice(0, -1).join(' ')}`;
+                                text[2].innerText = `${data[1].slice(0, -1).join(' ')}`;
+                                text[3].innerText = `${data[2].slice(0, -1).join(' ')}`;
+                                text[4].innerText = `${data[3].slice(0, -1).join(' ')}`;
+                                for (let i = 0; i < bagdata.length; i++) {
+                                    text[5 + i].innerText = `${bagdata[i].slice(0, -1).join(' ')}`;
                                 }
+                                $('.pop_main').show();
                             });
                             if (document.getElementById('equipmentDiv') == null) {
                                 backpacksObserver.disconnect();
@@ -6316,25 +6474,20 @@ function gudaq() {
                         case 2: {
                             calcBtn.disabled = '';
                             calcBtn.onclick = (() => {
-                                try {
-                                    calcDiv.innerHTML =
-                                        `<div class="pop_main"><div class="pop_con">
+                                calcDiv.innerHTML =
+                                    `<div class="pop_main"><div class="pop_con">
                                          <div class="pop_text"></div></div>
                                          <a href="###">× 折叠 ×</a></div>`;
-                                    $('.pop_main a').click(() => {
-                                        $('.pop_main').hide();
-                                    })
-                                    let text = $('.pop_text');
-                                    let aura = document.querySelectorAll('#backpacks .btn.btn-primary');
-                                    let data = [];
-                                    data.push(aura.length);
-                                    aura.forEach((item) => { data.push(g_haloMap.get(item.childNodes[1].nodeValue.trim())?.shortMark ?? ''); });
-                                    text[0].innerText = data.join(' ');
-                                    $('.pop_main').show();
-                                }
-                                catch (err) {
-                                    console.log(err);
-                                }
+                                $('.pop_main a').click(() => {
+                                    $('.pop_main').hide();
+                                })
+                                let text = $('.pop_text');
+                                let aura = document.querySelectorAll('#backpacks .btn.btn-primary');
+                                let data = [];
+                                data.push(aura.length);
+                                aura.forEach((item) => { data.push(g_haloMap.get(item.childNodes[1].nodeValue.trim())?.shortMark ?? ''); });
+                                text[0].innerText = data.join(' ');
+                                $('.pop_main').show();
                             });
                             break;
                         }
@@ -6356,25 +6509,37 @@ function gudaq() {
     else if (window.location.pathname == g_guguzhenBeach) {
         genericPopupInitialize();
 
-        let beachConfigDiv = document.createElement('form');
+        let beachConfigDiv = document.createElement('div');
+        beachConfigDiv.style.padding = '5px 15px';
+        beachConfigDiv.style.borderBottom = '1px solid #d0d0d0';
         beachConfigDiv.innerHTML =
-            `<div style="padding:5px 15px;border-bottom:1px solid grey;">
-             <button type="button" style="margin-right:15px;" id="siftSettings">筛选设置</button>
-             <input type="checkbox" id="forceExpand" style="margin-right:5px;" />
-             <label for="forceExpand" style="margin-right:40px;cursor:pointer;">强制展开所有装备</label>
-             <b><span id="analyze-indicator">正在分析...</span></b>
-             <div style="float:right;"><label for="beach_BG"
-                  style="margin-right:5px;cursor:pointer;">使用深色背景</label>
-             <input type="checkbox" id="beach_BG" /></div></div>`;
+            `<button type="button" style="width:120px;" id="analyze-indicator" disabled>分析中...</button>
+             <div style="float:right;">
+               <button type="button" style="width:120px;" id="siftSettings">筛选展开设置</button>
+               <button type="button" style="width:120px;" id="toAmuletSettings">批量转护符设置</button>
+               <input type="checkbox" id="forceExpand" style="margin-left:15px;margin-right:5px;" />
+               <label for="forceExpand" style="margin-right:15px;cursor:pointer;">强制展开所有装备</label>
+               <input type="checkbox" id="beach_BG" style="margin-right:5px;"/>
+               <label for="beach_BG" style="cursor:pointer;">使用深色背景</label>
+             </div></div>`;
 
-         let forceExpand = setupConfigCheckbox(
+        let equipRefreshRequired = true;
+        let btnAnalyze = beachConfigDiv.querySelector('#analyze-indicator');
+        btnAnalyze.onclick = (() => {
+            if (document.getElementById('beach_copy') != null) {
+                btnAnalyze.disabled = 'disabled';
+                equipRefreshRequired = true;
+                analyzeBeachEquips();
+            }
+        });
+
+        let forceExpand = setupConfigCheckbox(
             beachConfigDiv.querySelector('#forceExpand'),
             g_beachForceExpandStorageKey,
             (checked) => {
                 forceExpand = checked;
                 if (document.getElementById('beach_copy') != null) {
-                    document.getElementById('analyze-indicator').innerText = '正在分析...';
-                    setTimeout(() => { expandEquipment(equipment); }, 50);
+                    analyzeBeachEquips();
                 }
             },
             null);
@@ -6385,12 +6550,16 @@ function gudaq() {
             (checked) => { changeBeachStyle('beach_copy', beach_BG = checked); },
             null);
 
+        beachConfigDiv.querySelector('#toAmuletSettings').onclick = (() => {
+            modifyConfig([g_configMap.get('minBeachEquipLevelToAmulet'), g_configMap.get('minBeachAmuletPointsToStore')], '批量转护符设置');
+        });
+
         beachConfigDiv.querySelector('#siftSettings').onclick = (() => {
             loadTheme();
 
             let fixedContent =
                 '<div style="font-size:15px;color:#0000c0;padding:20px 0px 10px;"><b><ul>' +
-                '<li>被勾选的装备不会被展开，不会产生与已有装备的对比列表，但传奇、史诗及有神秘属性的装备除外</li>' +
+                '<li>被勾选的装备不会被展开，不会产生与已有装备的对比列表，传奇、史诗及有神秘属性的装备例外</li>' +
                 '<li>未勾选的属性被视为主要属性，海滩装备的任一主要属性值大于已有装备的相应值时即有可能被展开，除非已有装备中至少有一件其各项属性值均不低于海滩装备</li>' +
                 '<li>被勾选的属性被视为次要属性，当且仅当海滩装备和已有装备的主要属性值完全相等时才会被对比</li>' +
                 '<li>不作为筛选依据的已有装备不会与海滩装备直接进行比较，这些装备不会影响海滩装备的展开与否</li></ul></b></div>';
@@ -6491,7 +6660,7 @@ function gudaq() {
                 false);
             genericPopupAddCloseButton(80);
 
-            genericPopupSetContentSize(Math.min(g_equipments.length * 31 + 130, Math.max(window.innerHeight - 200, 500)),
+            genericPopupSetContentSize(Math.min(g_equipments.length * 31 + 130, Math.max(window.innerHeight - 400, 600)),
                                        Math.min(750, Math.max(window.innerWidth - 100, 600)),
                                        true);
             genericPopupShowModal(true);
@@ -6548,12 +6717,12 @@ function gudaq() {
                     freeCell = 0;
                 }
                 if (storeAmulets != null) {
-                    amuletNodesToArray(document.querySelectorAll('#wares > button.fyg_mp3'), storeAmulets);
+                    amuletNodesToArray(document.querySelectorAll('#wares > button.btn.fyg_mp3'), storeAmulets);
                 }
                 if (beach != null) {
                     let nodes = document.getElementById('beachall').children;
                     for (let node of nodes) {
-                        let lv = equipmentGetLevel(node);
+                        let lv = objectGetLevel(node);
                         if (lv > 1) {
                             let e = equipmentInfoParseNode(node);
                             if (e != null && ((lv == 2 && parseInt(e[1]) >= beachEquipLevel) || lv > 2)) {
@@ -6650,14 +6819,23 @@ function gudaq() {
             }
 
             function postProcess(closeCountDown) {
+                let closed = false;
+                function closeProcess() {
+                    if (!closed) {
+                        closed = true;
+                        genericPopupClose();
+                        window.location.reload();
+                    }
+                }
+
                 if (closeCountDown > 0) {
                     genericPopupQuerySelector('#' + g_genericPopupInformationTipsId).previousSibling.innerText =
                         `操作完成，共获得 ${amuletsCollected} 个护符， ${coresCollected} 个果核`;
+                    genericPopupOnClickOutside(closeProcess);
                     let timer = setInterval(() => {
                         if (--closeCountDown == 0) {
                             clearInterval(timer);
-                            genericPopupClose();
-                            window.location.reload();
+                            closeProcess();
                         }
                         else {
                             genericPopupShowInformationTips(`窗口将在 ${closeCountDown} 秒后关闭`, 0);
@@ -6665,8 +6843,7 @@ function gudaq() {
                     }, 1000);
                 }
                 else {
-                    genericPopupClose();
-                    window.location.reload();
+                    closeProcess();
                 }
             }
 
@@ -6731,50 +6908,115 @@ function gudaq() {
             genericPopupAddButton('关闭', 80, (() => { genericPopupClose(); window.location.reload(); }), false);
 
             genericPopupSetContentSize(400, 700, false);
+
+            g_analyzingEquipment = true;
             genericPopupShowModal(false);
 
             divHeightAdjustment(amuletToStoreList.parentNode);
             divHeightAdjustment(amuletToDestroyList.parentNode);
         }
 
-        let asyncOperations = 2;
-        let equipment = null;
-        let equipedbtn = null;
-        let bag, store;
-        beginReadObjects(
-            bag = [],
-            store = [],
-            () => {
-                equipedbtn = bag.concat(store);
-                asyncOperations--;
+        let asyncOperations = 1;
+        let equipExchanged = false;
+        let cardingNodes, equipNodes, equipInfos = [];
+        httpRequestBegin(
+            true,
+            'f=9',
+            (response) => {
+                let div0 = document.createElement('div');
+                div0.innerHTML = response.responseText;
+                cardingNodes = Array.from(div0.querySelectorAll('div.row > div.fyg_tc > button.btn.fyg_mp3')).sort(objectNodeComparer);
 
-                httpRequestBegin(
-                    true,
-                    'f=9',
-                    (response) => {
-                        let div0 = document.createElement('div');
-                        div0.innerHTML = response.responseText;
+                $(document).ajaxSend(() => { asyncOperations++; });
+                $(document).ajaxComplete((e, r) => {
+                    if (r.responseText?.indexOf('已装备') >= 0) {
+                        equipExchanged = true;
+                    }
+                    if (--asyncOperations < 0) {
+                        asyncOperations = 0;
+                    }
+                });
 
-                        equipedbtn = equipedbtn.concat(Array.from(div0.querySelectorAll('div.row > div.fyg_tc > button.fyg_mp3')));
-                        equipedbtn.sort(objectNodeComparer);
-                        equipment = equipmentNodesToInfoArray(equipedbtn);
+                if (--asyncOperations < 0) {
+                    asyncOperations = 0;
+                }
+            });
 
-                        document.getElementById('analyze-indicator').innerText = '分析完成';
-                        asyncOperations--;
-                    });
-            },
-            null);
+        (new MutationObserver((mlist) => {
+            if (!(mlist[0].addedNodes[0]?.className?.indexOf('popover') >= 0 ||
+                  mlist[0].removedNodes[0]?.className?.indexOf('popover') >= 0)) {
+                let oldNodes = Array.from(mlist[0].removedNodes).sort(objectNodeComparer);
+                let newNodes = Array.from(mlist[0].addedNodes).sort(objectNodeComparer);
+                let oldInfos = equipmentNodesToInfoArray(oldNodes);
+                let newInfos = equipmentNodesToInfoArray(newNodes);
+                if (equipExchanged) {
+                    equipExchanged = false;
+                    let puton = findNewObjects(oldInfos, newInfos, equipmentInfoComparer, true);
+                    if (puton.length == 1) {
+                        let takeoff = findNewObjects(newInfos, oldInfos, equipmentInfoComparer, true);
+                        if (takeoff.length == 1) {
+                            let exi = searchElement(cardingNodes, newNodes[takeoff[0]], objectNodeComparer);
+                            if (exi >= 0) {
+                                cardingNodes.splice(exi, 1);
+                            }
+                        }
+                        if (cardingNodes.length < 4) {
+                            insertElement(cardingNodes, oldNodes[puton[0]], objectNodeComparer);
+                        }
+                    }
+                    return;
+                }
 
-        //分析装备并显示属性
-        var g_expandingEquipment = false;
-        function expandEquipment(equipment) {
-            loadTheme();
+                equipRefreshRequired = (oldInfos.length != newInfos.length);
 
-            if (g_expandingEquipment || !(equipedbtn?.length > 0) || !(equipment?.length > 0) || equipment[0] == -1) {
-                document.getElementById('analyze-indicator').innerText = '分析完成';
-                return;
+                if (oldNodes.length == newNodes.length) {
+                    analyzeBeachEquips();
+                }
             }
+        })).observe(document.getElementById('wares'), { childList : true });
 
+        let beachTimer = setInterval(() => {
+            if (asyncOperations == 0 &&
+                (document.getElementById('beachall')?.firstChild?.nodeType ?? Node.ELEMENT_NODE) == Node.ELEMENT_NODE &&
+                (document.getElementById('wares')?.firstChild?.nodeType ?? Node.ELEMENT_NODE) == Node.ELEMENT_NODE) {
+
+                clearInterval(beachTimer);
+                loadTheme();
+
+                analyzeBeachEquips();
+                (new MutationObserver(() => { analyzeBeachEquips(); })).observe(document.getElementById('beachall'), { childList : true });
+            }
+        }, 500);
+
+        var g_analyzingEquipment = false;
+        function analyzeBeachEquips() {
+            if (!g_analyzingEquipment) {
+                g_analyzingEquipment = true;
+                btnAnalyze.innerText = '分析中...';
+
+                let equipTimer = setInterval(() => {
+                    if (asyncOperations == 0) {
+                        clearInterval(equipTimer);
+
+                        if (equipRefreshRequired) {
+                            equipNodes = cardingNodes.concat(Array.from(document.querySelectorAll('#wares button.btn.fyg_mp3')))
+                                                     .sort(objectNodeComparer);
+                            equipInfos = equipmentNodesToInfoArray(equipNodes);
+                            equipRefreshRequired = false;
+                        }
+
+                        expandEquipment();
+
+                        btnAnalyze.innerText = '重新分析';
+                        btnAnalyze.disabled = (document.getElementById('beachall')?.children?.length > 0 ? '' : 'disabled');
+
+                        g_analyzingEquipment = false;
+                    }
+                }, 100);
+            }
+        }
+
+        function expandEquipment() {
             let beach_copy = document.getElementById('beach_copy');
             if (beach_copy == null) {
                 let beachall = document.getElementById('beachall');
@@ -6785,7 +7027,7 @@ function gudaq() {
                 beachall.parentNode.insertBefore(beach_copy, beachall);
 
                 (new MutationObserver((mList) => {
-                    if (!g_expandingEquipment && mList?.length == 1 && mList[0].type == 'childList' &&
+                    if (!g_analyzingEquipment && mList?.length == 1 && mList[0].type == 'childList' &&
                         mList[0].addedNodes?.length == 1 && !(mList[0].removedNodes?.length > 0)) {
 
                         let node = mList[0].addedNodes[0];
@@ -6799,14 +7041,12 @@ function gudaq() {
                             if (node.className?.indexOf('popover-') < 0) {
                                 let content = node.querySelector('.popover-content');
                                 content.style.borderRadius = '5px';
-                                content.style.border = (beach_BG ? '4px double white' : '4px double black');
+                                content.style.border = '4px double ' + (beach_BG ? 'white' : 'black');
                             }
                         }
                     }
                 })).observe(beach_copy, { childList : true });
             }
-
-            g_expandingEquipment = true;
             copyBeach(beach_copy);
 
             let udata = loadUserConfigData();
@@ -6834,12 +7074,12 @@ function gudaq() {
             }
 
             const defaultSetting = [ false, false, false, false, false ];
-            beach_copy.querySelectorAll('.btn.fyg_mp3').forEach((btn) => {
+            beach_copy.querySelectorAll('button.btn.fyg_mp3').forEach((btn) => {
                 let e = equipmentInfoParseNode(btn);
                 if (e != null) {
                     let isExpanding = false;
-                    let eqLv = equipmentGetLevel(btn);
-                    if (forceExpand || eqLv > 2 || btn.getAttribute('data-content')?.match(/\[神秘属性\]/) != null) {
+                    let eqLv = objectGetLevel(btn);
+                    if (forceExpand || eqLv > 2 || /\[神秘属性\]/.test(btn.getAttribute('data-content'))) {
                         isExpanding = true;
                     }
                     else {
@@ -6847,15 +7087,15 @@ function gudaq() {
                         if (!setting[0]) {
                             let isFind = false;
                             let stLv;
-                            for (let j = 0; j < equipment.length; j++) {
-                                if (equipment[j][0] == e[0] &&
-                                    !(ignoreMysEquip && equipment[j][6] == 1) &&
-                                    (stLv = parseInt(equipment[j][1])) >= ignoreEquipLevel) {
+                            for (let j = equipInfos.length - 1; j >= 0; j--) {
+                                if (equipInfos[j][0] == e[0] &&
+                                    !(ignoreMysEquip && equipInfos[j][6] == 1) &&
+                                    (stLv = parseInt(equipInfos[j][1])) >= ignoreEquipLevel) {
 
                                     isFind = true;
                                     let e1 = [ parseInt(e[1]), parseInt(e[2]), parseInt(e[3]), parseInt(e[4]), parseInt(e[5]) ];
-                                    let e2 = [ stLv, parseInt(equipment[j][2]), parseInt(equipment[j][3]),
-                                               parseInt(equipment[j][4]), parseInt(equipment[j][5]) ];
+                                    let e2 = [ stLv, parseInt(equipInfos[j][2]), parseInt(equipInfos[j][3]),
+                                               parseInt(equipInfos[j][4]), parseInt(equipInfos[j][5]) ];
                                     let res = defaultEquipmentNodeComparer(setting, e[0], e1, e2);
                                     if (res.majorAdv == 0) {
                                         if (res.minorAdv == 0) {
@@ -6878,7 +7118,7 @@ function gudaq() {
                     }
                     if (isExpanding) {
                         let btn0 = document.createElement('button');
-                        btn0.className = `btn btn-light ${g_equipmentLevelTipClass[eqLv]}`;
+                        btn0.className = `btn btn-light popover-${g_equipmentLevelStyleClass[eqLv]}`;
                         btn0.style.minWidth = '200px';
                         btn0.style.padding = '0px';
                         btn0.style.marginBottom = '5px';
@@ -6892,30 +7132,34 @@ function gudaq() {
                         btn0.setAttribute('onclick', btn.getAttribute('onclick'));
 
                         let popover = document.createElement('div');
-                        popover.innerHTML = '<style> .popover { max-width:100%; } </style>';
-                        let eqMeta = g_equipMap.get(e[0]);
-                        equipedbtn.forEach((eqbtn) => {
-                            if (eqMeta.index == parseInt(eqbtn.dataset.metaIndex)) {
+                        popover.innerHTML =
+                            `<style> .popover { max-width:100%; }
+                                     .compare-equip-title { margin-bottom:0px; text-align:center; }
+                                     .compare-equip-content { padding:10px 5px 0px 5px; text-align:left; line-height:120%;}
+                             </style>`;
+                        equipInfos.forEach((eq, i) => {
+                            if (e[0] == eq[0]) {
                                 let btn1 = document.createElement('button');
-                                btn1.className = `btn btn-light ${g_equipmentLevelTipClass[equipmentGetLevel(eqbtn)]}`;
-                                btn1.style.cssText =
-                                    'min-width:180px;padding:10px 5px 0px 5px;text-align:left;box-shadow:none;background-color:none;' +
-                                    'line-height:120%;border-width:3px;border-style:double;margin-right:5px;margin-bottom:5px;';
-                                btn1.innerHTML = eqbtn.dataset.content;
-                                if (btn1.lastChild?.nodeType == 3) { //清除背景介绍文本
-                                    btn1.lastChild.remove();
+                                let styleClass = g_equipmentLevelStyleClass[objectGetLevel(eq)];
+                                btn1.className = `btn btn-light popover-${styleClass}`;
+                                btn1.style.cssText = 'min-width:180px;padding:0px;box-shadow:none;margin-right:5px;margin-bottom:5px;';
+                                btn1.innerHTML =
+                                    `<p class="compare-equip-title bg-${styleClass}">Lv.<b>${eq[1]}</b></p>
+                                     <div class="compare-equip-content">${equipNodes[i].dataset.content}</div>`;
+                                if (btn1.lastChild.lastChild?.nodeType != Node.ELEMENT_NODE) {
+                                    btn1.lastChild.lastChild?.remove();
                                 }
-                                if (btn1.lastChild?.className.indexOf('bg-danger') != -1) {
-                                    btn1.lastChild.style.cssText = 'max-width:180px;padding:3px;white-space:pre-line;word-break:break-all;';
+                                if (btn1.lastChild.lastChild?.className?.indexOf('bg-danger') >= 0) {
+                                    btn1.lastChild.lastChild.style.cssText =
+                                        'max-width:180px;padding:3px;white-space:pre-line;word-break:break-all;';
                                 }
-                                popover.appendChild(btn1);
+                                popover.insertBefore(btn1, popover.firstElementChild);
                             }
                         });
                         btn0.setAttribute('data-content', popover.innerHTML);
                         btn0.innerHTML =
-                            `<h3 class="popover-title" style="background-color:${getComputedStyle(btn0).getPropertyValue('background-color')}">` +
-                            `${btn.dataset.originalTitle}</h3>` +
-                            `<div class="popover-content-show" style="padding:10px 10px 0px 10px;">${btn.dataset.content}</div>`;
+                            `<h3 class="popover-title bg-${g_equipmentLevelStyleClass[objectGetLevel(e)]}">${btn.dataset.originalTitle}</h3>
+                             <div class="popover-content-show" style="padding:10px 10px 0px 10px;">${btn.dataset.content}</div>`;
                         beach_copy.insertBefore(btn0, btn.nextSibling);
                     }
                 }
@@ -6932,12 +7176,26 @@ function gudaq() {
             });
 
             changeBeachStyle('beach_copy', beach_BG);
-            document.getElementById('analyze-indicator').innerText = '分析完成';
-            g_expandingEquipment = false;
+
+            function copyBeach(beach_copy) {
+                beach_copy.innerHTML = '';
+                Array.from(document.getElementById('beachall').children).sort(sortBeach).forEach((node) => {
+                    beach_copy.appendChild(node.cloneNode(true));
+                });
+
+                function sortBeach(a, b) {
+                    let delta = objectGetLevel(a) - objectGetLevel(b);
+                    if (delta == 0) {
+                        if ((delta = parseInt(a.innerText.match(/\d+/)[0]) - parseInt(b.innerText.match(/\d+/)[0])) == 0) {
+                            delta = (a.getAttribute('data-original-title') < b.getAttribute('data-original-title') ? -1 : 1);
+                        }
+                    }
+                    return -delta;
+                }
+            }
         }
 
-        function changeBeachStyle(container, bg)
-        {
+        function changeBeachStyle(container, bg) {
             $(`#${container}`).css({
                 'background-color': bg ? 'black' : 'white'
             });
@@ -6950,50 +7208,15 @@ function gudaq() {
             $(`#${container} .popover-title`).css({
                 'color': bg ? 'black' : 'white'
             });
+            $(`#${container} .compare-equip-title`).css({
+                'color': bg ? 'black' : 'white'
+            });
             $(`#${container} .pull-right`).css({
                 'color': bg ? 'black' : 'white'
             });
             $(`#${container} .bg-danger.with-padding`).css({
                 'color': bg ? 'black' : 'white'
             });
-        }
-
-        //等待海滩装备加载
-        let beachTimer = setInterval(() => {
-            if ($('#beachall .btn').length != 0) {
-                clearInterval(beachTimer);
-                //等待装备读取完成
-                let equipTimer = setInterval(() => {
-                    if (asyncOperations == 0) {
-                        clearInterval(equipTimer);
-
-                        document.getElementById('analyze-indicator').innerText = '正在分析...';
-                        setTimeout(() => { expandEquipment(equipment); }, 50);
-
-                        (new MutationObserver(() => {
-                            document.getElementById('analyze-indicator').innerText = '正在分析...';
-                            setTimeout(() => { expandEquipment(equipment); }, 50);
-                        })).observe(document.getElementById('beachall'), { childList : true });
-                    }
-                }, 500);
-            }
-        }, 500);
-
-        function copyBeach(beach_copy) {
-            beach_copy.innerHTML = '';
-            Array.from(document.getElementById('beachall').children).sort(sortBeach).forEach((node) => {
-                beach_copy.appendChild(node.cloneNode(true));
-            });
-        }
-
-        function sortBeach(a, b) {
-            let delta = equipmentGetLevel(a) - equipmentGetLevel(b);
-            if (delta == 0) {
-                if ((delta = parseInt(a.innerText.match(/\d+/)[0]) - parseInt(b.innerText.match(/\d+/)[0])) == 0) {
-                    delta = (a.getAttribute('data-original-title') < b.getAttribute('data-original-title') ? -1 : 1);
-                }
-            }
-            return -delta;
         }
 
         document.body.style.paddingBottom = '1000px';
@@ -7003,12 +7226,12 @@ function gudaq() {
         pkConfigDiv.style.className = 'panel-heading';
         pkConfigDiv.style.float = 'right';
         pkConfigDiv.innerHTML =
-            `<label for="indexRallyCheckbox" style="margin-right:5px;cursor:pointer;">为攻击回合加注索引</label>
-             <input type="checkbox" id="indexRallyCheckbox" style="margin-right:15px;" />
-             <label for="keepPkRecordCheckbox" style="margin-right:5px;cursor:pointer;">暂时保持战斗记录</label>
-             <input type="checkbox" id="keepPkRecordCheckbox" style="margin-right:15px;" />
-             <label for="autoTaskEnabledCheckbox" style="margin-right:5px;cursor:pointer;">允许执行自定义任务</label>
-             <input type="checkbox" id="autoTaskEnabledCheckbox" />`;
+            `<input type="checkbox" id="indexRallyCheckbox" style="margin-right:5px;" />
+             <label for="indexRallyCheckbox" style="margin-right:15px;cursor:pointer;">为攻击回合加注索引</label>
+             <input type="checkbox" id="keepPkRecordCheckbox" style="margin-right:5px;" />
+             <label for="keepPkRecordCheckbox" style="margin-right:15px;cursor:pointer;">暂时保持战斗记录</label>
+             <input type="checkbox" id="autoTaskEnabledCheckbox" style="margin-right:5px;" />
+             <label for="autoTaskEnabledCheckbox" style="margin-right:5px;cursor:pointer;">允许执行自定义任务</label>`;
 
         let indexRally = setupConfigCheckbox(
             pkConfigDiv.querySelector('#indexRallyCheckbox'),
@@ -7087,6 +7310,7 @@ function gudaq() {
                 if (e.target?.id == 'pklist' || e.target?.className?.indexOf('fyg_colpz03') >= 0) {
                     stoneProgressTip((succeeded, msgs) => { addUserMessage(msgs); });
                     setupNotificationClicker();
+                    break;
                 }
             };
         });
@@ -7413,8 +7637,8 @@ function gudaq() {
                         let div = document.createElement('div');
                         div.style.float = 'right';
                         div.innerHTML =
-                            '<label for="ignoreWishpoolExpirationCheckbox" style="margin-right:5px;cursor:pointer;">禁止许愿池过期提醒</label>' +
-                            '<input type="checkbox" id="ignoreWishpoolExpirationCheckbox" />';
+                            '<input type="checkbox" id="ignoreWishpoolExpirationCheckbox" style="margin-right:5px;" />' +
+                            '<label for="ignoreWishpoolExpirationCheckbox" style="cursor:pointer;">禁止许愿池过期提醒</label>';
 
                         setupConfigCheckbox(div.querySelector('#ignoreWishpoolExpirationCheckbox'),
                                             g_ignoreWishpoolExpirationStorageKey,
