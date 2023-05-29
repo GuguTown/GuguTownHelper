@@ -1,21 +1,21 @@
 // ==UserScript==
-// @name         GuguTown Helper Reforged
-// @name:zh-CN   咕咕镇助手重铸
-// @name:zh-TW   咕咕鎮助手重鑄
-// @name:ja      咕咕镇助手再鍛造
-// @namespace    https://github.com/HazukiKaguya/GuguTownDAQ_Reforged
-// @homepage     https://github.com/HazukiKaguya/GuguTownDAQ_Reforged
+// @name         GuguTown Helper
+// @name:zh-CN   咕咕镇助手
+// @name:zh-TW   咕咕鎮助手
+// @name:ja      咕咕镇助手
+// @namespace    https://github.com/HazukiKaguya/GuguTownHelper
+// @homepage     https://github.com/HazukiKaguya/GuguTownHelper
 // @version      1.7.25.1
-// @description  WebGame GuguTown DAQ & Helper,now DAQ is off
-// @description:zh-CN 气人页游 咕咕镇 数据采集&助手，目前采集已关闭
-// @description:zh-TW 氣人頁遊 咕咕鎮 資料採集&助手，目前採集已關閉
-// @description:ja オンラインゲーム 咕咕镇 DAQ&助手, 現在、DAQはオフです
+// @description  WebGame GuguTown Helper
+// @description:zh-CN 气人页游 咕咕镇助手
+// @description:zh-TW 氣人頁遊 咕咕鎮助手
+// @description:ja オンラインゲーム 咕咕镇助手
 // @author       paraii & zyxboy
 // @match        https://www.guguzhen.com/*
 // @match        https://www.momozhen.com/*
 // @license      MIT License
-// @downloadURL  https://github.com/HazukiKaguya/GuguTownDAQ_Reforged/raw/main/GuguTownDAQ_Reforged.user.js
-// @updateURL    https://github.com/HazukiKaguya/GuguTownDAQ_Reforged/raw/main/GuguTownDAQ_Reforged.user.js
+// @downloadURL  https://github.com/HazukiKaguya/GuguTownDAQ_Reforged/raw/main/GuguTownHelper.user.js
+// @updateURL    https://github.com/HazukiKaguya/GuguTownDAQ_Reforged/raw/main/GuguTownHelper.user.js
 // ==/UserScript==
 /* eslint-env jquery */
 function gudaq(){
