@@ -24,17 +24,17 @@
 /* eslint-env jquery */
 function gudaq(){
     'use strict'
- 
+
     const g_isInSandBox = true;
-    const g_version = g_isInSandBox ? GM_info.script.version : '2.3.1 (RP)';
-    const g_modiTime = '2023-05-28 18:30:00';
- 
+    const g_version = g_isInSandBox ? GM_info.script.version : '2.2.3 (RP)';
+    const g_modiTime = '2023-05-25 20:30:00';
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     //
     // common utilities
     //
     ////////////////////////////////////////////////////////////////////////////////////////////////////
- 
+
     const g_navigatorSelector = 'body > div > div.row > div.panel > div.panel-body > div';
     const g_kfUser = document.querySelector(g_navigatorSelector + ' > button.btn.btn-lg')?.innerText;
     if (!(g_kfUser?.length > 0)) {
@@ -42,10 +42,7 @@ function gudaq(){
         return;
     }
     console.log('数据采集: ' + g_kfUser);
- 
-    const g_exportInterfaceId = 'gugu-assistant-interface-export';
-    var g_assistantInterface = null;
- 
+
     const g_guguzhenHome = '/fyg_index.php';
     const g_guguzhenBeach = '/fyg_beach.php';
     const g_guguzhenPK = '/fyg_pk.php';
@@ -53,7 +50,7 @@ function gudaq(){
     const g_guguzhenWish = '/fyg_wish.php';
     const g_guguzhenGem = '/fyg_gem.php';
     const g_guguzhenShop = '/fyg_shop.php';
- 
+
     const g_showSolutionPanelStorageKey = g_kfUser + '_showSolutionPanel';
     const g_indexRallyStorageKey = g_kfUser + '_indexRally';
     const g_keepPkRecordStorageKey = g_kfUser + '_keepPkRecord';
@@ -69,7 +66,7 @@ function gudaq(){
                                          g_amuletGroupCollectionStorageKey, g_equipmentExpandStorageKey, g_equipmentStoreExpandStorageKey,
                                          g_equipmentBGStorageKey, g_beachForceExpandStorageKey, g_beachBGStorageKey, g_gemConfigStorageKey,
                                          g_forgeHistoryStorageKey ];
- 
+
     // deprecated
     const g_amuletGroupsStorageKey = g_kfUser + '_amulet_groups';
     const g_autoTaskEnabledStorageKey = g_kfUser + '_autoTaskEnabled';
@@ -87,10 +84,10 @@ function gudaq(){
                                         g_stoneOperationStorageKey, g_forgeBoxUsageStorageKey, g_beachIgnoreStoreMysEquipStorageKey,
                                        'attribute', 'cardName', 'title', 'over', 'halo_max', 'beachcheck', 'dataReward', 'keepcheck' ];
     // deprecated
- 
+
     const USER_STORAGE_RESERVED_SEPARATORS = /[:;,|=+*%!#$&?<>{}^`"\\\/\[\]\r\n\t\v\s]/;
     const USER_STORAGE_KEY_VALUE_SEPARATOR = ':';
- 
+
     const g_userMessageDivId = 'user-message-div';
     const g_userMessageBtnId = 'user-message-btn';
     var g_msgCount = 0;
@@ -105,24 +102,24 @@ function gudaq(){
                         btn.style.display = 'none';
                     }
                 }
- 
+
                 let div_row = document.createElement('div');
                 div_row.className = 'row';
                 document.querySelector('div.row.fyg_lh60.fyg_tr').parentNode.appendChild(div_row);
- 
+
                 let div_pan = document.createElement('div');
                 div_pan.className = 'panel panel-info';
                 div_row.appendChild(div_pan);
- 
+
                 let div_head = document.createElement('div');
                 div_head.className = 'panel-heading';
                 div_head.innerText = '页面消息';
                 div_pan.appendChild(div_head);
- 
+
                 let div_op = document.createElement('div');
                 div_op.style.float = 'right';
                 div_head.appendChild(div_op);
- 
+
                 let link_mark = document.createElement('a');
                 link_mark.style.marginRight = '20px';
                 link_mark.innerText = '〇 已读';
@@ -140,7 +137,7 @@ function gudaq(){
                     }
                 });
                 div_op.appendChild(link_mark);
- 
+
                 let link_clear = document.createElement('a');
                 link_clear.style.marginRight = '20px';
                 link_clear.innerText = '〇 清空';
@@ -150,19 +147,19 @@ function gudaq(){
                     document.getElementById(g_userMessageDivId).innerHTML = '';
                 });
                 div_op.appendChild(link_clear);
- 
+
                 let link_top = document.createElement('a');
                 link_top.innerText = '〇 回到页首 ▲';
                 link_top.href = '###';
                 link_top.onclick = (() => { document.body.scrollIntoView(true); });
                 div_op.appendChild(link_top);
- 
+
                 div = document.createElement('div');
                 div.className = 'panel-body';
                 div.id = g_userMessageDivId;
                 div_pan.appendChild(div);
             }
- 
+
             if (!noNotification) {
                 let btn = document.getElementById(g_userMessageBtnId);
                 if (btn == null) {
@@ -176,7 +173,7 @@ function gudaq(){
                 btn.innerText = `查看消息（${g_msgCount += msgs.length}）`;
                 btn.style.display = 'inline-block';
             }
- 
+
             let timeStamp = getTimeStamp();
             timeStamp = timeStamp.date + ' ' + timeStamp.time;
             let alt = (div.firstElementChild?.className?.length > 0);
@@ -192,11 +189,11 @@ function gudaq(){
             });
         }
     }
- 
+
     function addUserMessageSingle(title, msg, noNotification) {
         addUserMessage([[title, msg]], noNotification)
     }
- 
+
     function getTimeStamp(date, dateSeparator, timeSeparator) {
         date ??= new Date();
         dateSeparator ??= '-';
@@ -208,15 +205,15 @@ function gudaq(){
                                              .slice(-2)}${timeSeparator}${('0' + date.getSeconds()).slice(-2)}`
         };
     }
- 
+
     function loadUserConfigData() {
         return JSON.parse(localStorage.getItem(g_kfUser));
     }
- 
+
     function saveUserConfigData(json) {
         localStorage.setItem(g_kfUser, JSON.stringify(json));
     }
- 
+
     // generic configuration items represented using checkboxes
     function setupConfigCheckbox(checkbox, configKey, fnPostProcess, fnParams) {
         checkbox.checked = (localStorage.getItem(configKey) == 'true');
@@ -228,7 +225,7 @@ function gudaq(){
         });
         return checkbox.checked;
     }
- 
+
     // HTTP requests
     const g_use_GM_xmlhttpRequest = g_isInSandBox;
     const GuGuZhenRequest = {
@@ -267,7 +264,7 @@ function gudaq(){
                 requestObj.setRequestHeader(name, g_postHeader[name]);
             }
             requestObj.send(queryString);
- 
+
             function httpRequestEventHandler(e) {
                 switch (e.type) {
                     case 'load':
@@ -291,18 +288,18 @@ function gudaq(){
         g_httpRequests.push(requestObj);
         return requestObj;
     }
- 
+
     function httpRequestAbortAll() {
         while (g_httpRequests.length > 0) {
             g_httpRequests.pop().abort();
         }
         g_httpRequests = [];
     }
- 
+
     function httpRequestClearAll() {
         g_httpRequests = [];
     }
- 
+
     // request data
     const g_httpRequestMap = new Map();
     function getRequestInfoAsync(name, location) {
@@ -320,7 +317,7 @@ function gudaq(){
             }
         });
     }
- 
+
     function beginGetRequestMap(location, fnPostProcess, fnParams) {
         function searchScript(text) {
             let regex = /<script.+?<\/script>/gms;
@@ -363,7 +360,7 @@ function gudaq(){
             }
             return null;
         }
- 
+
         if (location == null) {
             searchScript(document.documentElement.innerHTML);
         }
@@ -373,7 +370,7 @@ function gudaq(){
     }
     // beginGetRequestMap(null, () => { console.log(g_httpRequestMap); });
     beginGetRequestMap();
- 
+
     // read objects from bag and store with title filter
     function beginReadObjects(bag, store, fnPostProcess, fnParams) {
         if (bag != null || store != null) {
@@ -383,7 +380,7 @@ function gudaq(){
                 (response) => {
                     let div = document.createElement('div');
                     div.innerHTML = response.responseText;
- 
+
                     if (bag != null) {
                         div.querySelectorAll('div.alert-danger > button.btn.fyg_mp3')?.forEach((e) => { bag.push(e); });
                     }
@@ -399,7 +396,7 @@ function gudaq(){
             fnPostProcess(fnParams);
         }
     }
- 
+
     function beginReadObjectIds(bagIds, storeIds, key, ignoreEmptyCell, fnPostProcess, fnParams) {
         function parseObjectIds() {
             if (bagIds != null) {
@@ -412,7 +409,7 @@ function gudaq(){
                 fnPostProcess(fnParams);
             }
         }
- 
+
         let bag = (bagIds != null ? [] : null);
         let store = (storeIds != null ? [] : null);
         if (bag != null || store != null) {
@@ -422,7 +419,7 @@ function gudaq(){
             fnPostProcess(fnParams);
         }
     }
- 
+
     function objectIdParseNodes(nodes, ids, key, ignoreEmptyCell) {
         for (let node of nodes) {
             if (node.className?.indexOf('fyg_mp3') >= 0) {
@@ -443,11 +440,11 @@ function gudaq(){
             }
         }
     }
- 
+
     function objectMatchTitle(node, key){
         return (!(key?.length > 0) || (node.getAttribute('data-original-title') ?? node.getAttribute('title'))?.indexOf(key) >= 0);
     }
- 
+
     // we wait the response(s) of the previous batch of request(s) to send another batch of request(s)
     // rather than simply send them all within an inside foreach - which could cause too many requests
     // to server simultaneously, that can be easily treated as D.D.O.S attack and therefor leads server
@@ -503,7 +500,7 @@ function gudaq(){
             fnPostProcess(fnParams);
         }
     }
- 
+
     const g_beach_pirl_verify_data = '85797';
     const g_store_pirl_verify_data = '124';
     const g_objectPirlRequest = g_httpRequestMap.get('pirl');
@@ -536,7 +533,7 @@ function gudaq(){
             fnPostProcess(fnParams);
         }
     }
- 
+
     // roleInfo = [ roleId, roleName, [ equips ] ]
     function beginReadRoleInfo(roleInfo, fnPostProcess, fnParams) {
         function parseCarding(carding) {
@@ -558,7 +555,7 @@ function gudaq(){
                     div = document.createElement('div');
                     div.innerHTML = response.responseText;
                     parseCarding(div);
- 
+
                     if (fnPostProcess != null) {
                         fnPostProcess(fnParams);
                     }
@@ -566,12 +563,12 @@ function gudaq(){
             return;
         }
         parseCarding(div);
- 
+
         if (fnPostProcess != null) {
             fnPostProcess(fnParams);
         }
     }
- 
+
     // haloInfo = [ haloPoints, haloSlots, [ haloItem1, haloItem2, ... ] ]
     function beginReadHaloInfo(haloInfo, fnPostProcess, fnParams) {
         httpRequestBegin(
@@ -599,7 +596,7 @@ function gudaq(){
                 }
             });
     }
- 
+
     function beginReadWishpool(points, misc, fnPostProcess, fnParams) {
         httpRequestBegin(
             GuGuZhenRequest.read,
@@ -620,7 +617,7 @@ function gudaq(){
                 }
             });
     }
- 
+
     // userInfo = [ kfUser, grade, level, seashell, bvip, svip ]
     function beginReadUserInfo(userInfo, fnPostProcess, fnParams) {
         httpRequestBegin(
@@ -640,123 +637,27 @@ function gudaq(){
                 }
             });
     }
- 
-    function setupAddinExportInterface() {
-        if (g_assistantInterface == null &&
-            (g_assistantInterface = document.getElementById(g_exportInterfaceId)?.assistantInterface) == null) {
- 
-            g_assistantInterface = {
-                config : {
-                    get : (id) => { return g_configMap.get(id)?.value; },
-                    refresh : readConfig,
-                    modify : modifyConfig
-                },
-                timestamp : {
-                    get : getTimeStamp
-                },
-                pageMessage : {
-                    add : addUserMessage,
-                    addSingle : addUserMessageSingle
-                },
-                httpRequest : {
-                    GuGuZhenRequest : GuGuZhenRequest,
-                    MoMoZhenRequest : MoMoZhenRequest,
-                    begin : httpRequestBegin,
-                    abortAll : httpRequestAbortAll,
-                    clearAll : httpRequestClearAll,
-                    getInfoAsync : getRequestInfoAsync
-                },
-                readInfo : {
-                    role : beginReadRoleInfo,
-                    halo : beginReadHaloInfo,
-                    wish : beginReadWishpool,
-                    user : beginReadUserInfo
-                },
-                equip : {
-                    bag : {
-                        // TODO
-                    },
-                    store : {
-                        // TODO
-                    },
-                    amulet : {
-                        // TODO
-                    },
-                    equip : {
-                        meta : {
-                            list : g_equipments,
-                            map : g_equipMap,
-                        },
-                        // TODO
-                    },
-                    property : {
-                        meta : {
-                            list : g_properties,
-                            map : g_propertyMap,
-                        },
-                        read : beginReadProperties,
-                        // TODO
-                    },
-                },
-                genericPopup : {
-                    informationTipsId : g_genericPopupInformationTipsId,
-                    initialize : genericPopupInitialize,
-                    reset : genericPopupReset,
-                    setContent : genericPopupSetContent,
-                    setFixedContent : genericPopupSetFixedContent,
-                    addButton : genericPopupAddButton,
-                    addCloseButton : genericPopupAddCloseButton,
-                    setContentSize : genericPopupSetContentSize,
-                    showModal : genericPopupShowModal,
-                    close : genericPopupClose,
-                    onClickOutside : genericPopupOnClickOutside,
-                    querySelector : genericPopupQuerySelector,
-                    querySelectorAll : genericPopupQuerySelectorAll,
-                    showInformationTips : genericPopupShowInformationTips,
-                    showProgressMessage : genericPopupShowProgressMessage,
-                    updateProgressMessage : genericPopupUpdateProgressMessage,
-                    closeProgressMessage : genericPopupCloseProgressMessage,
-                    taskPopup : {
-                        setup : genericPopupTaskListPopupSetup,
-                        setState : genericPopupTaskSetState,
-                        complete : genericPopupTaskComplete,
-                        checkCompletion : genericPopupTaskCheckCompletion
-                    }
-                },
-                binding : {
-                    list : readBindingSolutionList,
-                    switch : switchSolution
-                }
-            };
- 
-            let exp = document.createElement('div');
-            exp.id = g_exportInterfaceId;
-            exp.style.display = 'none';
-            exp.assistantInterface = g_assistantInterface;
-            document.body.appendChild(exp);
-        }
-    }
- 
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     //
     // amulet management
     //
     ////////////////////////////////////////////////////////////////////////////////////////////////////
- 
+
     const AMULET_STORAGE_GROUP_SEPARATOR = '|';
     const AMULET_STORAGE_GROUPNAME_SEPARATOR = '=';
     const AMULET_STORAGE_AMULET_SEPARATOR = ',';
     const AMULET_STORAGE_CODEC_SEPARATOR = '-';
     const AMULET_STORAGE_ITEM_SEPARATOR = ' ';
     const AMULET_STORAGE_ITEM_NV_SEPARATOR = '+';
- 
+
     // deprecated
     const AMULET_TYPE_ID_FACTOR = 100000000000000;
     const AMULET_LEVEL_ID_FACTOR = 10000000000000;
     const AMULET_ENHANCEMENT_FACTOR = 1000000000000;
     const AMULET_BUFF_MAX_FACTOR = AMULET_ENHANCEMENT_FACTOR;
     // deprecated
- 
+
     const g_amuletDefaultLevelIds = {
         start : 0,
         end : 2,
@@ -804,12 +705,12 @@ function gudaq(){
         g_amuletBuffMap.set(item.name, item);
         g_amuletBuffMap.set(item.shortMark, item);
     });
- 
+
     var g_amuletLevelIds = g_amuletDefaultLevelIds;
     var g_amuletTypeIds = g_amuletDefaultTypeIds;
     var g_amuletLevelNames = g_amuletDefaultLevelNames;
     var g_amuletTypeNames = g_amuletDefaultTypeNames;
- 
+
     function amuletLoadTheme(theme) {
         if (theme.dessertlevel?.length > 0 && theme.dessertname?.length > 0) {
             g_amuletLevelNames = theme.dessertlevel;
@@ -830,7 +731,7 @@ function gudaq(){
             }
         }
     }
- 
+
     function Amulet() {
         this.isAmulet = true;
         this.id = -1;
@@ -840,7 +741,7 @@ function gudaq(){
         this.buffs = [];
         this.buffCode = null;
         this.text = null;
- 
+
         this.reset = (() => {
             this.id = -1;
             this.type = -1;
@@ -850,11 +751,11 @@ function gudaq(){
             this.buffCode = null;
             this.text = null;
         });
- 
+
         this.isValid = (() => {
             return (this.type >= 0 && this.type < g_amuletDefaultTypeNames.length);
         });
- 
+
         this.addItem = ((item, buff) => {
             if (this.isValid()) {
                 let meta = g_amuletBuffMap.get(item);
@@ -869,7 +770,7 @@ function gudaq(){
             }
             return false;
         });
- 
+
         this.fromCode = ((code) => {
             this.reset();
             let e = code?.split(AMULET_STORAGE_CODEC_SEPARATOR);
@@ -885,7 +786,7 @@ function gudaq(){
             }
             return (this.isValid() ? this : null);
         });
- 
+
         this.fromBuffText = ((text) => {
             this.reset();
             let nb = text?.split(' = ');
@@ -909,12 +810,12 @@ function gudaq(){
             this.reset();
             return null;
         });
- 
+
         this.fromNode = ((node) => {
             if (node?.nodeType == Node.ELEMENT_NODE) {
                 if (this.fromBuffText(node.getAttribute('amulate-string')) != null &&
                     !isNaN(this.id = parseInt(node.getAttribute('onclick').match(/\d+/)?.[0]))) {
- 
+
                     return this;
                 }
                 else if (node.className?.indexOf('fyg_mp3') >= 0) {
@@ -932,7 +833,7 @@ function gudaq(){
                                                                                         g_amuletDefaultLevelIds.end)])) &&
                             !isNaN(this.id = parseInt(id.match(/\d+/)?.[0])) &&
                             !isNaN(this.enhancement = parseInt(node.innerText))) {
- 
+
                             this.text = '';
                             let attr = null;
                             let regex = /<p.*?>(.+?)<.*?>\+(\d+).*?<\/span><\/p>/g;
@@ -957,7 +858,7 @@ function gudaq(){
             this.reset();
             return null;
         });
- 
+
         this.fromAmulet = ((amulet) => {
             this.reset();
             if (amulet?.isValid()) {
@@ -971,7 +872,7 @@ function gudaq(){
             }
             return (this.isValid() ? this : null);
         });
- 
+
         this.getCode = (() => {
             if (this.isValid()) {
                 if (!(this.buffCode?.length > 0)) {
@@ -988,11 +889,11 @@ function gudaq(){
             }
             return null;
         });
- 
+
         this.getBuff = (() => {
             return this.buffs;
         });
- 
+
         this.getTotalPoints = (() => {
             let points = 0;
             this.buffs?.forEach((e) => {
@@ -1000,14 +901,14 @@ function gudaq(){
             });
             return points;
         });
- 
+
         this.formatName = (() => {
             if (this.isValid()) {
                 return `${g_amuletLevelNames[this.level]}${g_amuletTypeNames[this.type]} (+${this.enhancement})`;
             }
             return null;
         });
- 
+
         this.formatBuff = (() => {
             if (this.isValid()) {
                 if (this.text?.length > 0) {
@@ -1022,14 +923,14 @@ function gudaq(){
             }
             return this.text;
         });
- 
+
         this.formatBuffText = (() => {
             if (this.isValid()) {
                 return this.formatName() + ' = ' + this.formatBuff();
             }
             return null;
         });
- 
+
         this.formatShortMark = (() => {
             let text = this.formatBuff()?.replaceAll(/(\+)|( 点)|( %)/g, '');
             if (text?.length > 0) {
@@ -1041,7 +942,7 @@ function gudaq(){
             }
             return null;
         });
- 
+
         this.compareMatch = ((other, ascType) => {
             if (!this.isValid()) {
                 return 1;
@@ -1049,14 +950,14 @@ function gudaq(){
             else if (!other?.isValid()) {
                 return -1;
             }
- 
+
             let delta = other.type - this.type;
             if (delta != 0) {
                 return (ascType ? -delta : delta);
             }
             return (other.buffCode > this.buffCode ? -1 : (other.buffCode < this.buffCode ? 1 : 0));
         });
- 
+
         this.compareTo = ((other, ascType) => {
             if (!this.isValid()) {
                 return 1;
@@ -1064,12 +965,12 @@ function gudaq(){
             else if (!other?.isValid()) {
                 return -1;
             }
- 
+
             let delta = other.type - this.type;
             if (delta != 0) {
                 return (ascType ? -delta : delta);
             }
- 
+
             let tbuffs = this.formatBuffText().split(' = ')[1].replaceAll(/(\+)|( 点)|( %)/g, '').split(', ');
             let obuffs = other.formatBuffText().split(' = ')[1].replaceAll(/(\+)|( 点)|( %)/g, '').split(', ');
             let bl = Math.min(tbuffs.length, obuffs.length);
@@ -1086,30 +987,30 @@ function gudaq(){
                 (delta = other.enhancement - this.enhancement) != 0) {
                 return delta;
             }
- 
+
             return 0;
         });
     }
- 
+
     function AmuletGroup(persistenceString) {
         this.isAmuletGroup = true;
         this.name = null;
         this.items = [];
         this.buffSummary = [];
- 
+
         this.isValid = (() => {
             return (this.items.length > 0 && amuletIsValidGroupName(this.name));
         });
- 
+
         this.count = (() => {
             return this.items.length;
         });
- 
+
         this.clear = (() => {
             this.items = [];
             this.buffSummary = [];
         });
- 
+
         this.add = ((amulet) => {
             if (amulet?.isValid()) {
                 amulet.buffs.forEach((e, i) => {
@@ -1119,7 +1020,7 @@ function gudaq(){
             }
             return -1;
         });
- 
+
         this.remove = ((amulet) => {
             if (this.isValid() && amulet?.isValid()) {
                 let i = searchElement(this.items, amulet, (a, b) => a.compareTo(b, true));
@@ -1136,7 +1037,7 @@ function gudaq(){
             }
             return false;
         });
- 
+
         this.removeId = ((id) => {
             if (this.isValid()) {
                 let i = this.items.findIndex((a) => a.id == id);
@@ -1154,12 +1055,12 @@ function gudaq(){
             }
             return null;
         });
- 
+
         this.merge = ((group) => {
             group?.items?.forEach((am) => { this.add(am); });
             return this;
         });
- 
+
         this.validate = ((amulets) => {
             if (this.isValid()) {
                 let mismatch = 0;
@@ -1194,7 +1095,7 @@ function gudaq(){
             }
             return false;
         });
- 
+
         this.findIndices = ((amulets) => {
             let indices = [];
             let al;
@@ -1217,7 +1118,7 @@ function gudaq(){
             }
             return indices;
         });
- 
+
         this.parse = ((persistenceString) => {
             this.clear();
             if (persistenceString?.length > 0) {
@@ -1241,7 +1142,7 @@ function gudaq(){
             }
             return (this.count() > 0);
         });
- 
+
         this.formatBuffSummary = ((linePrefix, lineSuffix, lineSeparator, ignoreMaxValue) => {
             if (this.isValid()) {
                 let str = '';
@@ -1257,7 +1158,7 @@ function gudaq(){
             }
             return '';
         });
- 
+
         this.formatBuffShortMark = ((keyValueSeparator, itemSeparator, ignoreMaxValue) => {
             if (this.isValid()) {
                 let str = '';
@@ -1273,7 +1174,7 @@ function gudaq(){
             }
             return '';
         });
- 
+
         this.formatItems = ((linePrefix, erroeLinePrefix, lineSuffix, errorLineSuffix, lineSeparator) => {
             if (this.isValid()) {
                 let str = '';
@@ -1287,7 +1188,7 @@ function gudaq(){
             }
             return '';
         });
- 
+
         this.getDisplayStringLineCount = (() => {
             if (this.isValid()) {
                 let lines = 0;
@@ -1300,7 +1201,7 @@ function gudaq(){
             }
             return 0;
         });
- 
+
         this.formatPersistenceString = (() => {
             if (this.isValid()) {
                 let codes = [];
@@ -1311,23 +1212,23 @@ function gudaq(){
             }
             return '';
         });
- 
+
         this.parse(persistenceString);
     }
- 
+
     function AmuletGroupCollection(persistenceString) {
         this.isAmuletGroupCollection = true;
         this.items = {};
         this.itemCount = 0;
- 
+
         this.count = (() => {
             return this.itemCount;
         });
- 
+
         this.contains = ((name) => {
             return (this.items[name] != null);
         });
- 
+
         this.add = ((item) => {
             if (item?.isValid()) {
                 if (!this.contains(item.name)) {
@@ -1338,7 +1239,7 @@ function gudaq(){
             }
             return false;
         });
- 
+
         this.remove = ((name) => {
             if (this.contains(name)) {
                 delete this.items[name];
@@ -1347,18 +1248,18 @@ function gudaq(){
             }
             return false;
         });
- 
+
         this.clear = (() => {
             for (let name in this.items) {
                 delete this.items[name];
             }
             this.itemCount = 0;
         });
- 
+
         this.get = ((name) => {
             return this.items[name];
         });
- 
+
         this.rename = ((oldName, newName) => {
             if (amuletIsValidGroupName(newName)) {
                 let group = this.items[oldName];
@@ -1369,7 +1270,7 @@ function gudaq(){
             }
             return false;
         });
- 
+
         this.toArray = (() => {
             let groups = [];
             for (let name in this.items) {
@@ -1377,7 +1278,7 @@ function gudaq(){
             }
             return groups;
         });
- 
+
         this.parse = ((persistenceString) => {
             this.clear();
             if (persistenceString?.length > 0) {
@@ -1392,7 +1293,7 @@ function gudaq(){
             }
             return (this.count() > 0);
         });
- 
+
         this.formatPersistenceString = (() => {
             let str = '';
             let ns = '';
@@ -1402,10 +1303,10 @@ function gudaq(){
             }
             return str;
         });
- 
+
         this.parse(persistenceString);
     }
- 
+
     // deprecated
     // 2023-05-04: new amulet items added
     function AmuletOld() {
@@ -1415,7 +1316,7 @@ function gudaq(){
         this.enhancement = 0;
         this.buffCode = 0;
         this.text = null;
- 
+
         this.reset = (() => {
             this.id = -1;
             this.type = -1;
@@ -1424,11 +1325,11 @@ function gudaq(){
             this.buffCode = 0;
             this.text = null;
         });
- 
+
         this.isValid = (() => {
             return (this.type >= 0 && this.type < g_amuletDefaultTypeNames.length && this.buffCode > 0);
         });
- 
+
         this.fromCode = ((code) => {
             if (!isNaN(code)) {
                 this.type = Math.trunc(code / AMULET_TYPE_ID_FACTOR) % 10;
@@ -1441,7 +1342,7 @@ function gudaq(){
             }
             return (this.isValid() ? this : null);
         });
- 
+
         this.fromBuffText = ((text) => {
             if (text?.length > 0) {
                 let nb = text.split(' = ');
@@ -1466,12 +1367,12 @@ function gudaq(){
             this.reset();
             return null;
         });
- 
+
         this.fromNode = ((node) => {
             if (node?.nodeType == Node.ELEMENT_NODE) {
                 if (this.fromBuffText(node.getAttribute('amulate-string'))?.isValid() &&
                     !isNaN(this.id = parseInt(node.getAttribute('onclick').match(/\d+/)?.[0]))) {
- 
+
                     return this;
                 }
                 else if (node.className?.indexOf('fyg_mp3') >= 0) {
@@ -1488,7 +1389,7 @@ function gudaq(){
                                                                                         g_amuletDefaultLevelIds.end)])) &&
                             !isNaN(this.id = parseInt(id.match(/\d+/)?.[0])) &&
                             !isNaN(this.enhancement = parseInt(node.innerText))) {
- 
+
                             this.buffCode = 0;
                             this.text = '';
                             let attr = null;
@@ -1511,7 +1412,7 @@ function gudaq(){
             this.reset();
             return null;
         });
- 
+
         this.fromAmulet = ((amulet) => {
             if (amulet?.isValid()) {
                 this.id = amulet.id;
@@ -1526,7 +1427,7 @@ function gudaq(){
             }
             return (this.isValid() ? this : null);
         });
- 
+
         this.getCode = (() => {
             if (this.isValid()) {
                 return (this.type * AMULET_TYPE_ID_FACTOR +
@@ -1536,7 +1437,7 @@ function gudaq(){
             }
             return -1;
         });
- 
+
         this.getBuff = (() => {
             let buffs = {};
             if (this.isValid()) {
@@ -1552,7 +1453,7 @@ function gudaq(){
             }
             return buffs;
         });
- 
+
         this.getTotalPoints = (() => {
             let points = 0;
             if (this.isValid()) {
@@ -1564,14 +1465,14 @@ function gudaq(){
             }
             return points;
         });
- 
+
         this.formatName = (() => {
             if (this.isValid()) {
                 return `${g_amuletLevelNames[this.level]}${g_amuletTypeNames[this.type]} (+${this.enhancement})`;
             }
             return null;
         });
- 
+
         this.formatBuff = (() => {
             if (this.isValid()) {
                 if (this.text?.length > 0) {
@@ -1585,14 +1486,14 @@ function gudaq(){
             }
             return this.text;
         });
- 
+
         this.formatBuffText = (() => {
             if (this.isValid()) {
                 return this.formatName() + ' = ' + this.formatBuff();
             }
             return null;
         });
- 
+
         this.formatShortMark = (() => {
             let text = this.formatBuff()?.replaceAll(/(\+)|( 点)|( %)/g, '');
             if (text?.length > 0) {
@@ -1603,7 +1504,7 @@ function gudaq(){
             }
             return null;
         });
- 
+
         this.compareMatch = ((other, ascType) => {
             if (!this.isValid()) {
                 return 1;
@@ -1611,14 +1512,14 @@ function gudaq(){
             else if (!other?.isValid()) {
                 return -1;
             }
- 
+
             let delta = other.type - this.type;
             if (delta != 0) {
                 return (ascType ? -delta : delta);
             }
             return (other.buffCode - this.buffCode);
         });
- 
+
         this.compareTo = ((other, ascType) => {
             if (!this.isValid()) {
                 return 1;
@@ -1626,12 +1527,12 @@ function gudaq(){
             else if (!other?.isValid()) {
                 return -1;
             }
- 
+
             let delta = other.type - this.type;
             if (delta != 0) {
                 return (ascType ? -delta : delta);
             }
- 
+
             let tbuffs = this.formatBuffText().split(' = ')[1].replaceAll(/(\+)|( 点)|( %)/g, '').split(', ');
             let obuffs = other.formatBuffText().split(' = ')[1].replaceAll(/(\+)|( 点)|( %)/g, '').split(', ');
             let bl = Math.min(tbuffs.length, obuffs.length);
@@ -1648,29 +1549,29 @@ function gudaq(){
                 (delta = other.enhancement - this.enhancement) != 0) {
                 return delta;
             }
- 
+
             return 0;
         });
     }
- 
+
     function AmuletGroupOld(persistenceString) {
         this.name = null;
         this.items = [];
         this.buffSummary = [];
- 
+
         this.isValid = (() => {
             return (this.items.length > 0 && amuletIsValidGroupName(this.name));
         });
- 
+
         this.count = (() => {
             return this.items.length;
         });
- 
+
         this.clear = (() => {
             this.items = [];
             this.buffSummary = [];
         });
- 
+
         this.add = ((amulet) => {
             if (amulet?.isValid()) {
                 let buffs = amulet.getBuff();
@@ -1681,7 +1582,7 @@ function gudaq(){
             }
             return -1;
         });
- 
+
         this.remove = ((amulet) => {
             if (this.isValid() && amulet?.isValid()) {
                 let i = searchElement(this.items, amulet, (a, b) => a.compareTo(b, true));
@@ -1699,7 +1600,7 @@ function gudaq(){
             }
             return false;
         });
- 
+
         this.removeId = ((id) => {
             if (this.isValid()) {
                 let i = this.items.findIndex((a) => a.id == id);
@@ -1718,12 +1619,12 @@ function gudaq(){
             }
             return null;
         });
- 
+
         this.merge = ((group) => {
             group?.items?.forEach((am) => { this.add(am); });
             return this;
         });
- 
+
         this.validate = ((amulets) => {
             if (this.isValid()) {
                 let mismatch = 0;
@@ -1758,7 +1659,7 @@ function gudaq(){
             }
             return false;
         });
- 
+
         this.findIndices = ((amulets) => {
             let indices = [];
             let al;
@@ -1781,7 +1682,7 @@ function gudaq(){
             }
             return indices;
         });
- 
+
         this.parse = ((persistenceString) => {
             this.clear();
             if (persistenceString?.length > 0) {
@@ -1805,7 +1706,7 @@ function gudaq(){
             }
             return (this.count() > 0);
         });
- 
+
         this.formatBuffSummary = ((linePrefix, lineSuffix, lineSeparator, ignoreMaxValue) => {
             if (this.isValid()) {
                 let str = '';
@@ -1821,7 +1722,7 @@ function gudaq(){
             }
             return '';
         });
- 
+
         this.formatBuffShortMark = ((keyValueSeparator, itemSeparator, ignoreMaxValue) => {
             if (this.isValid()) {
                 let str = '';
@@ -1837,7 +1738,7 @@ function gudaq(){
             }
             return '';
         });
- 
+
         this.formatItems = ((linePrefix, erroeLinePrefix, lineSuffix, errorLineSuffix, lineSeparator) => {
             if (this.isValid()) {
                 let str = '';
@@ -1851,7 +1752,7 @@ function gudaq(){
             }
             return '';
         });
- 
+
         this.getDisplayStringLineCount = (() => {
             if (this.isValid()) {
                 let lines = 0;
@@ -1864,7 +1765,7 @@ function gudaq(){
             }
             return 0;
         });
- 
+
         this.formatPersistenceString = (() => {
             if (this.isValid()) {
                 let codes = [];
@@ -1875,22 +1776,22 @@ function gudaq(){
             }
             return '';
         });
- 
+
         this.parse(persistenceString);
     }
- 
+
     function AmuletGroupCollectionOld(persistenceString) {
         this.items = {};
         this.itemCount = 0;
- 
+
         this.count = (() => {
             return this.itemCount;
         });
- 
+
         this.contains = ((name) => {
             return (this.items[name] != null);
         });
- 
+
         this.add = ((item) => {
             if (item?.isValid()) {
                 if (!this.contains(item.name)) {
@@ -1901,7 +1802,7 @@ function gudaq(){
             }
             return false;
         });
- 
+
         this.remove = ((name) => {
             if (this.contains(name)) {
                 delete this.items[name];
@@ -1910,18 +1811,18 @@ function gudaq(){
             }
             return false;
         });
- 
+
         this.clear = (() => {
             for (let name in this.items) {
                 delete this.items[name];
             }
             this.itemCount = 0;
         });
- 
+
         this.get = ((name) => {
             return this.items[name];
         });
- 
+
         this.rename = ((oldName, newName) => {
             if (amuletIsValidGroupName(newName)) {
                 let group = this.items[oldName];
@@ -1932,7 +1833,7 @@ function gudaq(){
             }
             return false;
         });
- 
+
         this.toArray = (() => {
             let groups = [];
             for (let name in this.items) {
@@ -1940,7 +1841,7 @@ function gudaq(){
             }
             return groups;
         });
- 
+
         this.parse = ((persistenceString) => {
             this.clear();
             if (persistenceString?.length > 0) {
@@ -1955,7 +1856,7 @@ function gudaq(){
             }
             return (this.count() > 0);
         });
- 
+
         this.formatPersistenceString = (() => {
             let str = '';
             let ns = '';
@@ -1965,10 +1866,10 @@ function gudaq(){
             }
             return str;
         });
- 
+
         this.parse(persistenceString);
     }
- 
+
     function amuletGroupStorageConvert() {
         if (localStorage.getItem(g_amuletGroupCollectionStorageKey) == null) {
             console.log('Begin convert amulet groups ...');
@@ -1999,11 +1900,11 @@ function gudaq(){
     }
     amuletGroupStorageConvert();
     // deprecated
- 
+
     function amuletIsValidGroupName(groupName) {
         return (groupName?.length > 0 && groupName.length < 32 && groupName.search(USER_STORAGE_RESERVED_SEPARATORS) < 0);
     }
- 
+
     function amuletSaveGroups(groups) {
         if (groups?.count() > 0) {
             localStorage.setItem(g_amuletGroupCollectionStorageKey, groups.formatPersistenceString());
@@ -2012,15 +1913,15 @@ function gudaq(){
             localStorage.removeItem(g_amuletGroupCollectionStorageKey);
         }
     }
- 
+
     function amuletLoadGroups() {
         return new AmuletGroupCollection(localStorage.getItem(g_amuletGroupCollectionStorageKey));
     }
- 
+
     function amuletClearGroups() {
         localStorage.removeItem(g_amuletGroupCollectionStorageKey);
     }
- 
+
     function amuletSaveGroup(group) {
         if (group?.isValid()) {
             let groups = amuletLoadGroups();
@@ -2029,18 +1930,18 @@ function gudaq(){
             }
         }
     }
- 
+
     function amuletLoadGroup(groupName) {
         return amuletLoadGroups().get(groupName);
     }
- 
+
     function amuletDeleteGroup(groupName) {
         let groups = amuletLoadGroups();
         if (groups.remove(groupName)) {
             amuletSaveGroups(groups);
         }
     }
- 
+
     function amuletCreateGroupFromArray(groupName, amulets) {
         if (amulets?.length > 0 && amuletIsValidGroupName(groupName)) {
             let group = new AmuletGroup(null);
@@ -2057,7 +1958,7 @@ function gudaq(){
         }
         return null;
     }
- 
+
     function amuletNodesToArray(nodes, array, key) {
         array ??= [];
         let amulet;
@@ -2069,7 +1970,7 @@ function gudaq(){
         }
         return array;
     }
- 
+
     function beginReadAmulets(bagAmulets, storeAmulets, key, fnPostProcess, fnParams) {
         function parseAmulets() {
             if (bagAmulets != null) {
@@ -2082,7 +1983,7 @@ function gudaq(){
                 fnPostProcess(fnParams);
             }
         }
- 
+
         let bag = (bagAmulets != null ? [] : null);
         let store = (storeAmulets != null ? [] : null);
         if (bag != null || store != null) {
@@ -2092,7 +1993,7 @@ function gudaq(){
             fnPostProcess(fnParams);
         }
     }
- 
+
     function beginLoadAmuletGroupsDiff(groupNames, fnProgress, fnPostProcess, fnParams) {
         let bag, store, loading;
         if (groupNames?.length > 0) {
@@ -2103,7 +2004,7 @@ function gudaq(){
                     loading = loading.concat(g.items);
                 }
             });
- 
+
             if (loading.length > 0) {
                 if (fnProgress != null) {
                     fnProgress(4, 1, loading.length);
@@ -2115,7 +2016,7 @@ function gudaq(){
         if (fnPostProcess != null) {
             fnPostProcess(fnParams);
         }
- 
+
         function beginUnload() {
             let ids = [];
             if (bag.length > 0) {
@@ -2130,7 +2031,7 @@ function gudaq(){
             }
             beginMoveObjects(ids, ObjectMovePath.bag2store, beginLoad, ids.length);
         }
- 
+
         function beginLoad(unloadedCount) {
             if (loading.length > 0 && store.length > 0) {
                 if (unloadedCount == 0) {
@@ -2156,7 +2057,7 @@ function gudaq(){
             }
         }
     }
- 
+
     function beginMoveAmulets({ groupName, amulets, path, proc, params }) {
         let indices = amuletLoadGroup(groupName)?.findIndices(amulets)?.sort((a, b) => b - a);
         let ids = [];
@@ -2165,7 +2066,7 @@ function gudaq(){
         }
         beginMoveObjects(ids, path, proc, params);
     }
- 
+
     function beginLoadAmuletGroupFromStore(amulets, groupName, fnPostProcess, fnParams) {
         if (amulets?.length > 0) {
             let store = amuletNodesToArray(amulets);
@@ -2178,7 +2079,7 @@ function gudaq(){
                                proc : fnPostProcess, params : fnParams });
         }
     }
- 
+
     function beginUnloadAmuletGroupFromBag(amulets, groupName, fnPostProcess, fnParams) {
         if (amulets?.length > 0) {
             let bag = amuletNodesToArray(amulets);
@@ -2191,13 +2092,13 @@ function gudaq(){
                                proc : fnPostProcess, params : fnParams });
         }
     }
- 
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     //
     // property utilities
     //
     ////////////////////////////////////////////////////////////////////////////////////////////////////
- 
+
     const g_equipmentDefaultLevelName = [ '普通', '幸运', '稀有', '史诗', '传奇' ];
     const g_equipmentLevelStyleClass = [ 'primary', 'info', 'success', 'warning', 'danger' ];
     const g_equipmentLevelPoints = [ 200, 321, 419, 516, 585 ];
@@ -2206,7 +2107,7 @@ function gudaq(){
         function formatPropertyString(p) {
             return `${p.metaIndex},${p.level},${p.amount}`;
         }
- 
+
         function parsePropertyString(s) {
             let a = s.split(',');
             return {
@@ -2216,7 +2117,7 @@ function gudaq(){
                 amount : parseInt(a[2])
             };
         }
- 
+
         if (node?.nodeType == Node.ELEMENT_NODE) {
             let s = node.getAttribute('property-string');
             if (s?.length > 0) {
@@ -2246,7 +2147,7 @@ function gudaq(){
         }
         return null;
     }
- 
+
     function propertyNodesToInfoArray(nodes, array, key) {
         array ??= [];
         let e;
@@ -2257,11 +2158,11 @@ function gudaq(){
         }
         return array;
     }
- 
+
     function propertyInfoComparer(p1, p2) {
         return p1.metaIndex - p2.metaIndex;
     }
- 
+
     function beginReadProperties(properties, key, fnPostProcess, fnParams) {
         if (properties != null) {
             let store = [];
@@ -2270,23 +2171,24 @@ function gudaq(){
                 store,
                 () => {
                     propertyNodesToInfoArray(store, properties, key);
- 
+
                     if (fnPostProcess != null) {
                         fnPostProcess(fnParams);
                     }
-                });
+                },
+                store);
         }
         else if (fnPostProcess != null) {
             fnPostProcess(fnParams);
         }
     }
- 
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     //
     // equipment utilities
     //
     ////////////////////////////////////////////////////////////////////////////////////////////////////
- 
+
     var g_equipmentLevelName = g_equipmentDefaultLevelName;
     function equipmentInfoParseNode(node, ignoreIllegalAttributes) {
         if (node?.nodeType == Node.ELEMENT_NODE) {
@@ -2325,7 +2227,7 @@ function gudaq(){
         }
         return null;
     }
- 
+
     function equipmentQuality(e) {
         let eq = (Array.isArray(e) ? e : equipmentInfoParseNode(e, true));
         if (eq?.length >= 9) {
@@ -2333,7 +2235,7 @@ function gudaq(){
         }
         return -1;
     }
- 
+
     function equipmentNodesToInfoArray(nodes, array, ignoreIllegalAttributes) {
         array ??= [];
         for (let i = nodes?.length - 1; i >= 0; i--) {
@@ -2344,19 +2246,19 @@ function gudaq(){
         }
         return array;
     }
- 
+
     function equipmentInfoComparer(e1, e2) {
         let delta = g_equipMap.get(e1[0]).index - g_equipMap.get(e2[0]).index;
         for (let i = 1; i < 9 && delta == 0; delta = parseInt(e1[i]) - parseInt(e2[i++]));
         return delta;
     }
- 
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     //
     // object utilities
     //
     ////////////////////////////////////////////////////////////////////////////////////////////////////
- 
+
     function objectGetLevel(e) {
         let eq = equipmentQuality(e);
         if (eq >= 0) {
@@ -2371,11 +2273,11 @@ function gudaq(){
         }
         return -1;
     }
- 
+
     function objectNodeComparer(e1, e2) {
         let eq1 = equipmentInfoParseNode(e1, true);
         let eq2 = equipmentInfoParseNode(e2, true);
- 
+
         if (eq1 == null && eq2 == null) {
             return ((new Amulet()).fromNode(e1)?.compareTo((new Amulet()).fromNode(e2)) ?? 1);
         }
@@ -2387,17 +2289,17 @@ function gudaq(){
         }
         return equipmentInfoComparer(eq1, eq2);
     }
- 
+
     function objectIsEmptyNode(node) {
         return (/空/.test(node?.innerText) || !(node?.getAttribute('data-content')?.length > 0));
     }
- 
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     //
     // bag & store utilities
     //
     ////////////////////////////////////////////////////////////////////////////////////////////////////
- 
+
     function findAmuletIds(container, amulets, ids, maxCount) {
         ids ??= [];
         let cl = container?.length;
@@ -2416,7 +2318,7 @@ function gudaq(){
         }
         return ids;
     }
- 
+
     function findEquipmentIds(container, equips, ids, maxCount) {
         ids ??= [];
         let cl = container?.length;
@@ -2435,12 +2337,12 @@ function gudaq(){
         }
         return ids;
     }
- 
+
     function beginClearBag(bag, key, fnPostProcess, fnParams) {
         function beginClearBagObjects(objects) {
             beginMoveObjects(objects, ObjectMovePath.bag2store, fnPostProcess, fnParams);
         }
- 
+
         let objects = [];
         if (bag?.length > 0) {
             objectIdParseNodes(bag, objects, key, true);
@@ -2450,13 +2352,13 @@ function gudaq(){
             beginReadObjectIds(objects, null, key, true, beginClearBagObjects, objects);
         }
     }
- 
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     //
     // generic popups
     //
     ////////////////////////////////////////////////////////////////////////////////////////////////////
- 
+
     const g_genericPopupContainerId = 'generic-popup-container';
     const g_genericPopupClass = 'generic-popup';
     const g_genericPopupId = g_genericPopupClass;
@@ -2479,7 +2381,7 @@ function gudaq(){
     const g_genericPopupBackgroundColorAlt = '#dbe2e9';
     const g_genericPopupBorderColor = '#3280fc';
     const g_genericPopupTitleTextColor = '#ffffff';
- 
+
     const g_genericPopupStyle =
         `<style>
             .${g_genericPopupClass} {
@@ -2549,7 +2451,7 @@ function gudaq(){
                 vertical-align: middle;
             }
         </style>`;
- 
+
     const g_genericPopupHTML =
         `${g_genericPopupStyle}
          <div class="${g_genericPopupClass}" id="${g_genericPopupId}">
@@ -2570,7 +2472,7 @@ function gudaq(){
          <div class="${g_genericPopupProgressClass}" id="${g_genericPopupProgressId}">
            <div class="${g_genericPopupProgressContentClass}"><span id="${g_genericPopupProgressContentId}"></span></div>
          </div>`;
- 
+
     var g_genericPopupContainer = null;
     function genericPopupInitialize() {
         if (g_genericPopupContainer == null && (g_genericPopupContainer = document.getElementById(g_genericPopupContainerId)) == null) {
@@ -2580,7 +2482,7 @@ function gudaq(){
         }
         g_genericPopupContainer.innerHTML = g_genericPopupHTML;
     }
- 
+
     function genericPopupReset(initialize) {
         if (initialize) {
             g_genericPopupContainer.innerHTML = g_genericPopupHTML;
@@ -2589,25 +2491,25 @@ function gudaq(){
             let fixedContent = g_genericPopupContainer.querySelector('#' + g_genericPopupFixedContentId);
             fixedContent.style.display = 'none';
             fixedContent.innerHTML = '';
- 
+
             g_genericPopupContainer.querySelector('#' + g_genericPopupTitleTextId).innerText = '';
             g_genericPopupContainer.querySelector('#' + g_genericPopupContentId).innerHTML = '';
             g_genericPopupContainer.querySelector('#' + g_genericPopupTitleButtonContainerId).innerHTML = '';
             g_genericPopupContainer.querySelector('#' + g_genericPopupFootButtonContainerId).innerHTML = '';
         }
     }
- 
+
     function genericPopupSetContent(title, content) {
         g_genericPopupContainer.querySelector('#' + g_genericPopupTitleTextId).innerText = title;
         g_genericPopupContainer.querySelector('#' + g_genericPopupContentId).innerHTML = content;
     }
- 
+
     function genericPopupSetFixedContent(content) {
         let fixedContent = g_genericPopupContainer.querySelector('#' + g_genericPopupFixedContentId);
         fixedContent.style.display = 'block';
         fixedContent.innerHTML = content;
     }
- 
+
     function genericPopupAddButton(text, width, clickProc, addToTitle) {
         let btn = document.createElement('button');
         btn.innerText = text;
@@ -2619,34 +2521,34 @@ function gudaq(){
         else {
             btn.style.width = 'auto';
         }
- 
+
         g_genericPopupContainer.querySelector('#' + (addToTitle
                                               ? g_genericPopupTitleButtonContainerId
                                               : g_genericPopupFootButtonContainerId)).appendChild(btn);
         return btn;
     }
- 
+
     function genericPopupAddCloseButton(width, text, addToTitle) {
         return genericPopupAddButton(text?.length > 0 ? text : '关闭', width, (() => { genericPopupClose(true); }), addToTitle);
     }
- 
+
     function genericPopupSetContentSize(height, width, scrollable) {
         height = (height?.toString() ?? '100%');
         width = (width?.toString() ?? '100%');
- 
+
         g_genericPopupContainer.querySelector('#' + g_genericPopupContentContainerId).style.width
             = width + (width.endsWith('px') || width.endsWith('%') ? '' : 'px');
- 
+
         let content = g_genericPopupContainer.querySelector('#' + g_genericPopupContentId);
         content.style.height = height + (height.endsWith('px') || height.endsWith('%') ? '' : 'px');
         content.style.overflow = (scrollable ? 'auto' : 'hidden');
     }
- 
+
     function genericPopupShowModal(clickOutsideToClose) {
         genericPopupClose(false);
- 
+
         let popup = g_genericPopupContainer.querySelector('#' + g_genericPopupId);
- 
+
         if (clickOutsideToClose) {
             popup.onclick = ((event) => {
                 if (event.target == popup) {
@@ -2657,26 +2559,26 @@ function gudaq(){
         else {
             popup.onclick = null;
         }
- 
+
         popup.style.display = "flex";
     }
- 
+
     function genericPopupClose(reset, initialize) {
         genericPopupCloseProgressMessage();
- 
+
         let popup = g_genericPopupContainer.querySelector('#' + g_genericPopupId);
         popup.style.display = "none";
- 
+
         if (reset) {
             genericPopupReset(initialize);
         }
- 
+
         httpRequestClearAll();
     }
- 
+
     function genericPopupOnClickOutside(fnProcess, fnParams) {
         let popup = g_genericPopupContainer.querySelector('#' + g_genericPopupId);
- 
+
         if (fnProcess != null) {
             popup.onclick = ((event) => {
                 if (event.target == popup) {
@@ -2688,15 +2590,15 @@ function gudaq(){
             popup.onclick = null;
         }
     }
- 
+
     function genericPopupQuerySelector(selectString) {
         return g_genericPopupContainer.querySelector(selectString);
     }
- 
+
     function genericPopupQuerySelectorAll(selectString) {
         return g_genericPopupContainer.querySelectorAll(selectString);
     }
- 
+
     let g_genericPopupInformationTipsTimer = null;
     function genericPopupShowInformationTips(msg, time) {
         if (g_genericPopupInformationTipsTimer != null) {
@@ -2714,24 +2616,24 @@ function gudaq(){
             }
         }
     }
- 
+
     function genericPopupShowProgressMessage(progressMessage) {
         genericPopupClose(false);
- 
+
         g_genericPopupContainer.querySelector('#' + g_genericPopupProgressContentId).innerText
             = (progressMessage?.length > 0 ? progressMessage : '请稍候...');
         g_genericPopupContainer.querySelector('#' + g_genericPopupProgressId).style.display = "flex";
     }
- 
+
     function genericPopupUpdateProgressMessage(progressMessage) {
         g_genericPopupContainer.querySelector('#' + g_genericPopupProgressContentId).innerText
             = (progressMessage?.length > 0 ? progressMessage : '请稍候...');
     }
- 
+
     function genericPopupCloseProgressMessage() {
         g_genericPopupContainer.querySelector('#' + g_genericPopupProgressId).style.display = "none";
     }
- 
+
     //
     // generic task-list based progress popup
     //
@@ -2743,11 +2645,11 @@ function gudaq(){
     const g_genericPopupColorTaskIncompleted = '#c00000';
     const g_genericPopupColorTaskCompleted = '#0000c0';
     const g_genericPopupColorTaskCompletedWithError = 'red';
- 
+
     var g_genericPopupIncompletedTaskCount = 0;
     function genericPopupTaskListPopupSetup(title, popupWidth, tasks, fnCancelRoutine, cancelButtonText, cancelButtonWidth) {
         g_genericPopupIncompletedTaskCount = tasks.length;
- 
+
         genericPopupSetContent(title, `<div style="padding:15px 0px 15px 0px;"><ul id="${g_genericPopupTaskListId}"></ul></div>`);
         let indicatorList = g_genericPopupContainer.querySelector('#' + g_genericPopupTaskListId);
         for (let i = 0; i < g_genericPopupIncompletedTaskCount; i++) {
@@ -2757,21 +2659,21 @@ function gudaq(){
             li.innerHTML = `<span>${g_genericPopupTaskWaiting}</span><span>&nbsp;${tasks[i]}&nbsp;</span><span></span>`;
             indicatorList.appendChild(li);
         }
- 
+
         if (fnCancelRoutine != null) {
             genericPopupAddButton(cancelButtonText?.length > 0 ? cancelButtonText : '取消', cancelButtonWidth, fnCancelRoutine, false);
         }
- 
+
         genericPopupSetContentSize(Math.min(g_genericPopupIncompletedTaskCount * 20 + 30, window.innerHeight - 400), popupWidth, true);
     }
- 
+
     function genericPopupTaskSetState(index, state) {
         let item = g_genericPopupContainer.querySelector('#' + g_genericPopupTaskItemId + index)?.lastChild;
         if (item != null) {
             item.innerText = (state ?? '');
         }
     }
- 
+
     function genericPopupTaskComplete(index, error) {
         let li = g_genericPopupContainer.querySelector('#' + g_genericPopupTaskItemId + index);
         if (li?.firstChild?.innerText == g_genericPopupTaskWaiting) {
@@ -2780,75 +2682,23 @@ function gudaq(){
             g_genericPopupIncompletedTaskCount--;
         }
     }
- 
+
     function genericPopupTaskCheckCompletion() {
         return (g_genericPopupIncompletedTaskCount == 0);
     }
- 
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     //
     // switch solution
     //
     ////////////////////////////////////////////////////////////////////////////////////////////////////
- 
+
     const BINDING_SEPARATOR = ';';
     const BINDING_NAME_SEPARATOR = '=';
     const BINDING_ELEMENT_SEPARATOR = '|';
- 
-    function readBindingSolutionList(role) {
-        let roleId = 0;
-        if (role != null && (roleId = g_roleMap.get(role)?.id) == null) {
-            return null;
-        }
- 
-        let udata = loadUserConfigData();
-        if (roleId != 0) {
-            let binding = readRoleBinding(roleId);
-            return (binding == null ? null : [ binding ]);
-        }
-        else {
-            let bindings = [];
-            for (let id in udata.dataBind) {
-                let binding = readRoleBinding(id);
-                if (binding != null) {
-                    insertElement(bindings, binding, (a, b) => a.role.id - b.role.id);
-                }
-            }
-            return (bindings.length > 0 ? bindings : null);
-        }
- 
-        function readRoleBinding(id) {
-            let bindings = [];
-            let bindInfo = udata.dataBind[id];
-            if (bindInfo != null) {
-                bindInfo.split(BINDING_SEPARATOR).forEach((s) => {
-                    let a = s.split(BINDING_NAME_SEPARATOR);
-                    if (a.length == 2 && (a[0] = a[0].trim()).length > 0 &&
-                        a[1].split(BINDING_ELEMENT_SEPARATOR).length == 6) {
- 
-                        insertElement(bindings,
-                                      { name : a[0], binding : a[1] },
-                                      (a, b) => a.name < b.name ? -1 : (a.name > b.name ? 1 : 0));
-                    }
-                });
-            }
-            return (bindings.length > 0 ? { role : g_roleMap.get(id), bindings : bindings } : null);
-        }
-    }
- 
-    function switchSolution(bindingString, fnPostProcess, fnParams) {
-        genericPopupInitialize();
-        genericPopupShowProgressMessage('读取中，请稍候...');
-        switchBindingSolution(bindingString, fnPostProcess, fnParams);
-    }
- 
+
     const g_switchSolutionRequests = {};
     async function switchBindingSolution(bindingString, fnPostProcess, fnParams) {
-        if (!(bindingString?.length > 0)) {
-            roleSetupCompletion();
-            return;
-        }
- 
         if ((g_switchSolutionRequests.card ??= await getRequestInfoAsync('upcard', GuGuZhenRequest.equip)) != null) {
             g_switchSolutionRequests.halo ??= await getRequestInfoAsync('halosave', GuGuZhenRequest.equip);
             g_switchSolutionRequests.equip ??= await getRequestInfoAsync('puton', GuGuZhenRequest.equip);
@@ -2856,36 +2706,36 @@ function gudaq(){
         if (g_switchSolutionRequests.card == null ||
             g_switchSolutionRequests.halo == null ||
             g_switchSolutionRequests.equip == null) {
- 
+
             console.log('missing function:', g_switchSolutionRequests);
-            addUserMessageSingle('角色方案切换', '无法获取服务请求格式，可能的原因是咕咕镇版本不匹配或正在测试。');
-            roleSetupCompletion(true);
+            alert('无法获取服务请求格式，可能的原因是咕咕镇版本不匹配或正在测试。');
+            window.location.reload();
             return;
         }
- 
+
         let binding = bindingString?.split(BINDING_NAME_SEPARATOR);
         let roleId = g_roleMap.get(binding?.[0]?.trim())?.id;
         let bindInfo = binding?.[1]?.split(BINDING_ELEMENT_SEPARATOR)
         if (roleId == null || bindInfo?.length != 6) {
             console.log('missins format:', bindingString);
-            addUserMessageSingle('角色方案切换', '无效的绑定信息，无法执行切换。');
-            roleSetupCompletion(true);
+            alert('无效的绑定信息，无法执行切换。');
+            window.location.reload();
             return;
         }
- 
+
         let bindingEquipments = bindInfo.slice(0, 4);
         let bindingHalos = bindInfo[4].split(',');
         let amuletGroups = bindInfo[5].split(',');
- 
-        function roleSetupCompletion(error) {
+
+        function roleSetupCompletion() {
             httpRequestClearAll();
             genericPopupClose(true, true);
- 
+
             if (fnPostProcess != null) {
-                fnPostProcess(error, fnParams);
+                fnPostProcess(fnParams);
             }
         }
- 
+
         function checkForRoleSetupCompletion() {
             if (genericPopupTaskCheckCompletion()) {
                 // delay for the final state can be seen
@@ -2893,15 +2743,15 @@ function gudaq(){
                 genericPopupTaskSetState(1);
                 genericPopupTaskSetState(2);
                 genericPopupTaskSetState(3);
-                setTimeout(roleSetupCompletion, 200, equipmentOperationError > 0);
+                setTimeout(roleSetupCompletion, 200);
             }
         }
- 
+
         function amuletLoadCompletion() {
             genericPopupTaskComplete(3);
             checkForRoleSetupCompletion();
         }
- 
+
         let switchMethod = g_configMap.get('solutionSwitchMethod')?.value;
         function beginAmuletLoadGroups() {
             if (amuletGroups?.length > 0) {
@@ -2917,16 +2767,16 @@ function gudaq(){
             else {
                 amuletLoadCompletion();
             }
- 
+
             function amuletLoadProgress(total, current, amuletCount) {
                 genericPopupTaskSetState(3, `- 加载护符...（${amuletCount} - ${Math.trunc(current * 100 / total)}%）`);
             }
         }
- 
+
         function beginLoadAmulets() {
             genericPopupTaskSetState(2);
             genericPopupTaskComplete(2, equipmentOperationError > 0);
- 
+
             if (amuletGroups?.length > 0) {
                 if (switchMethod == 0) {
                     genericPopupTaskSetState(3, '- 清理饰品...');
@@ -2940,7 +2790,7 @@ function gudaq(){
                 amuletLoadCompletion();
             }
         }
- 
+
         let equipmentOperationError = 0;
         let putonRequestsCount;
         function putonEquipments(objects, fnPostProcess, fnParams) {
@@ -2971,7 +2821,7 @@ function gudaq(){
                 fnPostProcess(fnParams);
             }
         }
- 
+
         let currentEquipments = null;
         function beginPutonEquipments() {
             genericPopupTaskSetState(2, '- 检查装备...');
@@ -2989,7 +2839,7 @@ function gudaq(){
             else {
                 let store = [];
                 beginReadObjects(null, store, scheduleEquipments, null);
- 
+
                 function scheduleEquipments() {
                     let eqIds = findEquipmentIds(store, equipsToPuton);
                     if (equipsToPuton.length == 0) {
@@ -2998,15 +2848,15 @@ function gudaq(){
                     }
                     else {
                         console.log(equipsToPuton);
-                        addUserMessageSingle('角色方案切换', '有装备不存在，请重新检查绑定。');
- 
+                        alert('有装备不存在，请重新检查绑定！');
+
                         httpRequestAbortAll();
-                        roleSetupCompletion(true);
+                        roleSetupCompletion();
                     }
                 }
             }
         }
- 
+
         function beginSetupHalo() {
             if (bindingHalos?.length > 0) {
                 let halo = [];
@@ -3032,30 +2882,30 @@ function gudaq(){
             genericPopupTaskComplete(1);
             checkForRoleSetupCompletion();
         }
- 
+
         function beginRoleSetup() {
             beginSetupHalo();
             beginPutonEquipments();
         }
- 
+
         function beginSwitch(roleInfo) {
             function cancelSwitching() {
                 httpRequestAbortAll();
-                roleSetupCompletion(true);
+                roleSetupCompletion();
             }
- 
+
             if (!(roleInfo?.length > 0)) {
-                addUserMessageSingle('角色方案切换', '获取当前角色信息失败，无法执行切换。');
-                roleSetupCompletion(true);
+                alert('获取当前角色信息失败，无法执行切换。');
+                window.location.reload();
                 return;
             }
- 
+
             currentEquipments = equipmentNodesToInfoArray(roleInfo[2]);
- 
+
             genericPopupInitialize();
             genericPopupTaskListPopupSetup('切换中...', 300, [ '卡片', '光环', '装备', '饰品' ], cancelSwitching);
             genericPopupShowModal(false);
- 
+
             if (roleId == roleInfo[0]) {
                 genericPopupTaskComplete(0);
                 beginRoleSetup();
@@ -3073,23 +2923,23 @@ function gudaq(){
                         }
                         else {
                             genericPopupTaskComplete(0, true);
-                            addUserMessageSingle('角色方案切换', '卡片装备失败。');
+                            alert('卡片装备失败！');
                             cancelSwitching();
                         }
                     });
             }
         }
- 
+
         let roleInfo = [];
         beginReadRoleInfo(roleInfo, beginSwitch, roleInfo);
     }
- 
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     //
     // constants
     //
     ////////////////////////////////////////////////////////////////////////////////////////////////////
- 
+
     const g_roles = [
         { index : -1 , id : 3000 , name : '舞' , hasG : true , shortMark : 'WU' },
         { index : -1 , id : 3001 , name : '默' , hasG : false , shortMark : 'MO' },
@@ -3104,7 +2954,7 @@ function gudaq(){
         { index : -1 , id : 3010 , name : '霞' , hasG : true , shortMark : 'XIA' },
         { index : -1 , id : 3011 , name : '雅' , hasG : true , shortMark : 'YA' }
     ];
- 
+
     const g_roleMap = new Map();
     g_roles.forEach((item, index) => {
         item.index = index;
@@ -3113,7 +2963,7 @@ function gudaq(){
         g_roleMap.set(item.name, item);
         g_roleMap.set(item.shortMark, item);
     });
- 
+
     const g_properties = [
         { index : -1 , id : 3001 , name : '体能刺激药水' },
         { index : -1 , id : 3002 , name : '锻造材料箱' },
@@ -3126,7 +2976,7 @@ function gudaq(){
         { index : -1 , id : 3309 , name : '苹果核' },
         { index : -1 , id : 3310 , name : '光环天赋石' }
     ];
- 
+
     const g_propertyMap = new Map();
     g_properties.forEach((item, index) => {
         item.index = index;
@@ -3135,7 +2985,7 @@ function gudaq(){
         g_propertyMap.set(item.id.toString(), item);
         g_propertyMap.set(item.name, item);
     });
- 
+
     function propertyLoadTheme(theme) {
         if (theme.itemsname?.length > 0) {
             theme.itemsname.forEach((item, index) => {
@@ -3146,7 +2996,7 @@ function gudaq(){
             });
         }
     }
- 
+
     const g_gemWorks = [
         {
             index : -1,
@@ -3205,7 +3055,7 @@ function gudaq(){
             unitSymbol : ''
         }
     ];
- 
+
     const g_gemMinWorktimeMinute = 8 * 60;
     const g_gemPollPeriodMinute = { min : 1 , max : 8 * 60 , default : 60 };
     const g_gemFailurePollPeriodSecond = 30;
@@ -3215,7 +3065,7 @@ function gudaq(){
         item.alias = item.name;
         g_gemWorkMap.set(item.name, item);
     });
- 
+
     function readGemWorkCompletionCondition() {
         let cond = g_configMap.get('gemWorkCompletionCondition');
         let conds = cond.value.split(',');
@@ -3234,7 +3084,7 @@ function gudaq(){
         }
         return error;
     }
- 
+
     const g_equipAttributes = [
         { index : 0 , type : 0 , name : '物理攻击' },
         { index : 1 , type : 0 , name : '魔法攻击' },
@@ -3267,9 +3117,10 @@ function gudaq(){
         { index : 28 , type : 1 , name : '意志生命' },
         { index : 29 , type : 1 , name : '体魄物减' },
         { index : 30 , type : 1 , name : '意志魔减' },
-        { index : 31 , type : 1 , name : '敏捷绝伤' }
+        { index : 31 , type : 1 , name : '敏捷绝伤' },
+        { index : 32 , type : 1 , name : '敏捷生命' }
     ];
- 
+
     const g_equipments = [
         {
             index : -1,
@@ -3535,9 +3386,19 @@ function gudaq(){
                            { attribute : g_equipAttributes[20] , factor : 2 , additive : 0 },
                            { attribute : g_equipAttributes[10] , factor : 4 , additive : 0 } ],
             shortMark : 'SCARF'
+        },
+        {
+            index : -1,
+            name : '猎魔耳环',
+            type : 3,
+            attributes : [ { attribute : g_equipAttributes[24] , factor : 2 / 5 , additive : 0 },
+                           { attribute : g_equipAttributes[26] , factor : 2 / 25 , additive : 0 },
+                           { attribute : g_equipAttributes[32] , factor : 2 / 25 , additive : 0 },
+                           { attribute : g_equipAttributes[3] , factor : 3 / 50 , additive : 0 } ],
+            shortMark : 'HUNTER'
         }
     ];
- 
+
     const g_equipMap = new Map();
     g_equipments.forEach((item, index) => {
         item.index = index;
@@ -3545,7 +3406,7 @@ function gudaq(){
         g_equipMap.set(item.name, item);
         g_equipMap.set(item.shortMark, item);
     });
- 
+
     const g_oldEquipNames = [
         [ '荆棘盾剑', '荆棘剑盾' ],
         [ '饮血魔剑', '饮血长枪' ],
@@ -3556,7 +3417,7 @@ function gudaq(){
         [ '占星师的耳饰', '占星师的发饰' ],
         [ '探险者耳环', '探险者头巾' ]
     ];
- 
+
     const g_defaultEquipAttributeMerge = [ [0], [1], [2], [3] ];
     const defaultEquipAttributeCalculate = ((a, l, p) => Math.trunc((l * a.factor + a.additive) * (p / 10)) / 10);
     function defaultEquipmentNodeComparer(setting, eqKey, eq1, eq2) {
@@ -3567,7 +3428,7 @@ function gudaq(){
         let majorEq = 0;
         let majorDis = 0;
         let minorAdv = 0;
- 
+
         eqMeta.attributes.forEach((attr, index) => {
             let calculator = (attr.calculate ?? defaultEquipAttributeCalculate);
             let d = calculator(attr, eq1[0], eq1[index + 1]) - calculator(attr, eq2[0], eq2[index + 1]);
@@ -3581,7 +3442,7 @@ function gudaq(){
                 delta.push(d);
             }
         });
- 
+
         let merge = (eqMeta.merge?.length > 1 ? eqMeta.merge : g_defaultEquipAttributeMerge);
         for (let indices of merge) {
             let sum = 0;
@@ -3596,10 +3457,10 @@ function gudaq(){
                 majorEq++;
             }
         };
- 
+
         return { quality : quality, majorAdv : majorAdv, majorEq : majorEq, majorDis : majorDis, minorAdv : minorAdv };
     }
- 
+
     function formatEquipmentAttributes(e, itemSeparator) {
         let text = '';
         if (e?.length > 7) {
@@ -3613,7 +3474,7 @@ function gudaq(){
         }
         return text;
     }
- 
+
     function equipmentVerify(node, e) {
         if ((e ??= equipmentInfoParseNode(node, false)) != null) {
             let error = 0;
@@ -3633,7 +3494,7 @@ function gudaq(){
         console.log(`BUG equip: ${node}`);
         return -1;
     }
- 
+
     function equipmentVerifyManual(name, level, attrs, displays) {
         let eqMeta = g_equipMap.get(name);
         if (eqMeta != null && attrs?.length == 4 && displays?.length == 4) {
@@ -3645,7 +3506,7 @@ function gudaq(){
         }
     }
     // equipmentVerifyManual('噬魔戒指', 200, [90, 82, 99, 90], ['90', '131.2', '15.8', '12.6']);
- 
+
     var g_useOldEquipName = false;
     var g_useThemeEquipName = false;
     function equipLoadTheme(theme) {
@@ -3675,7 +3536,7 @@ function gudaq(){
             }
         }
     }
- 
+
     const g_halos = [
         { index : -1 , id : 101 , name : '启程之誓' , points : 0 , shortMark : 'SHI' },
         { index : -1 , id : 102 , name : '启程之心' , points : 0 , shortMark : 'XIN' },
@@ -3707,7 +3568,7 @@ function gudaq(){
         { index : -1 , id : 407 , name : '钝化锋芒' , points : 100 , shortMark : 'DUNH' },
         { index : -1 , id : 408 , name : '自信回头' , points : 100 , shortMark : 'ZI' }
     ];
- 
+
     const g_haloMap = new Map();
     g_halos.forEach((item, index) => {
         item.index = index;
@@ -3716,7 +3577,7 @@ function gudaq(){
         g_haloMap.set(item.name, item);
         g_haloMap.set(item.shortMark, item);
     });
- 
+
     const g_configs = [
         {
             index : -1,
@@ -3955,13 +3816,13 @@ function gudaq(){
             })
         }
     ];
- 
+
     const g_configMap = new Map();
     g_configs.forEach((item, index) => {
         item.index = index;
         g_configMap.set(item.id, item);
     });
- 
+
     function readConfig() {
         let udata = loadUserConfigData();
         g_configs.forEach((item) => {
@@ -3969,7 +3830,7 @@ function gudaq(){
         });
         return udata;
     }
- 
+
     function modifyConfig(configIds, title, reload) {
         title ??= '插件设置';
         let udata = readConfig();
@@ -3982,9 +3843,9 @@ function gudaq(){
                 }
             }
         }
- 
+
         genericPopupInitialize();
- 
+
         let fixedContent =
             '<div style="padding:20px 10px 10px 0px;color:blue;font-size:16px;"><b>请勿随意修改配置项，' +
             `除非您知道它的准确用途并且设置为正确的值，否则可能导致插件工作异常<span id="${g_genericPopupInformationTipsId}" ` +
@@ -3999,10 +3860,10 @@ function gudaq(){
                  <div class="${g_genericPopupTopLineDivClass}"><table id="config-table">
                  <tr class="alt"><th class="config-th-name">配置项 （在项名称或值输入框上悬停查看说明）</th><th>值</th>
                  <th class="config-th-button"></th></tr></table><div>`;
- 
+
         genericPopupSetFixedContent(fixedContent);
         genericPopupSetContent(title, mainContent);
- 
+
         let configTable = genericPopupQuerySelector('#config-table');
         configs.forEach((item, index) => {
             let tr = document.createElement('tr');
@@ -4022,7 +3883,7 @@ function gudaq(){
             let cfg = g_configMap.get(tr.getAttribute('config-item'));
             tr.style.color = ((cfg.validate?.call(null, e.target.value) ?? true) ? 'black' : 'red');
         }
- 
+
         configTable.querySelectorAll('button.config-restore-value').forEach((btn) => { btn.onclick = restoreValue; });
         function restoreValue(e) {
             let input = e.target.parentNode.parentNode.children[1].children[0].children[0];
@@ -4030,9 +3891,9 @@ function gudaq(){
             input.oninput({ target : input });
             genericPopupShowInformationTips('配置项已' + e.target.title, 5000);
         }
- 
+
         $('#config-table div[data-toggle="popover"]').popover();
- 
+
         genericPopupAddButton('重置为当前配置', 0, restoreValueAll, true).setAttribute('config-restore-default-all', 0);
         genericPopupAddButton('重置为默认配置', 0, restoreValueAll, true).setAttribute('config-restore-default-all', 1);
         function restoreValueAll(e) {
@@ -4046,7 +3907,7 @@ function gudaq(){
             });
             genericPopupShowInformationTips('全部配置项已' + e.target.innerText, 5000);
         }
- 
+
         genericPopupAddButton('保存', 80, saveConfig, false).setAttribute('config-save-config', 1);
         genericPopupAddButton('确认', 80, saveConfig, false).setAttribute('config-save-config', 0);
         function saveConfig(e) {
@@ -4064,10 +3925,10 @@ function gudaq(){
                     error.push(cfg.name);
                 }
             });
- 
+
             udata.config = config;
             saveUserConfigData(udata);
- 
+
             if (error.length > 0) {
                 alert('以下配置项输入内容有误，如有必要请重新设置：\n\n    [ ' + error.join(' ]\n    [ ') + ' ]');
             }
@@ -4084,13 +3945,13 @@ function gudaq(){
             }
         }
         genericPopupAddCloseButton(80);
- 
+
         genericPopupSetContentSize(Math.min(configs.length * 28 + 70, Math.max(window.innerHeight - 200, 400)),
                                    Math.min(720, Math.max(window.innerWidth - 100, 680)),
                                    true);
         genericPopupShowModal(true);
     }
- 
+
     function initiatizeConfig() {
         let udata = loadUserConfigData();
         if (udata == null) {
@@ -4125,7 +3986,7 @@ function gudaq(){
             for (let key in udata.dataBeachSift) {
                 if (!g_equipMap.has(key) && key != 'ignoreEquipQuality' &&
                     key != 'ignoreMysEquip' && key != 'ignoreEquipLevel') {
- 
+
                     delete udata.dataBeachSift[key];
                 }
             }
@@ -4150,11 +4011,11 @@ function gudaq(){
                 }
             }
         }
- 
+
         saveUserConfigData(udata);
         readConfig();
     }
- 
+
     var g_themeLoaded = false;
     function loadTheme() {
         if (!g_themeLoaded) {
@@ -4178,14 +4039,13 @@ function gudaq(){
             }
         }
     }
- 
+
     initiatizeConfig();
-    setupAddinExportInterface();
- 
+
     let g_messageBoxObserver = new MutationObserver((mList) => {
         g_messageBoxObserver.disconnect();
         readConfig();
- 
+
         let btns = mList?.[0]?.target?.querySelectorAll('button.btn.btn-primary');
         btns?.forEach((btn) => {
             if (btn.getAttribute('onclick')?.indexOf('oclick(\'13\',\'1\')') >= 0) {
@@ -4198,17 +4058,17 @@ function gudaq(){
         g_messageBoxObserver.observe(document.getElementById('mymessage'), { subtree : true , childList : true });
     });
     g_messageBoxObserver.observe(document.getElementById('mymessage'), { subtree : true , childList : true });
- 
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     //
     // page add-ins
     //
     ////////////////////////////////////////////////////////////////////////////////////////////////////
- 
+
     if (window.location.pathname == g_guguzhenHome) {
         const USER_DATA_xPORT_GM_KEY = g_kfUser + '_export_string';
         const USER_DATA_xPORT_SEPARATOR = '\n';
- 
+
         function importUserConfigData() {
             genericPopupSetContent(
                 '导入内容',
@@ -4216,7 +4076,7 @@ function gudaq(){
                  请将从其它系统中使用同一帐号导出的内容填入文本框中并执行导入操作</div></b>
                  <div style="height:330px;"><textarea id="user_data_persistence_string"
                  style="height:100%;width:100%;resize:none;"></textarea></div>`);
- 
+
             let btnRead = genericPopupAddButton(
                 '从全局存储中读取',
                 0,
@@ -4237,7 +4097,7 @@ function gudaq(){
                 }),
                 true);
             btnRead.disabled = g_isInSandBox ? '' : 'disabled';
- 
+
             let btnImport = genericPopupAddButton(
                 '执行导入',
                 0,
@@ -4296,11 +4156,11 @@ function gudaq(){
                 }),
                 true);
             genericPopupAddCloseButton(80);
- 
+
             genericPopupSetContentSize(400, 600, false);
             genericPopupShowModal(true);
         }
- 
+
         function exportUserConfigData() {
             genericPopupSetContent(
                 '导出内容',
@@ -4308,7 +4168,7 @@ function gudaq(){
                  请勿修改任何导出内容，将其保存为纯文本在其它系统中使用相同的帐号执行导入操作</div></b>
                  <div style="height:330px;"><textarea id="user_data_persistence_string" readonly="true"
                  style="height:100%;width:100%;resize:none;"></textarea></div>`);
- 
+
             let btnWrite = genericPopupAddButton(
                 '写入全局存储',
                 0,
@@ -4328,7 +4188,7 @@ function gudaq(){
                 }),
                 true);
             btnWrite.disabled = g_isInSandBox ? '' : 'disabled';
- 
+
             let btnCopy = genericPopupAddButton(
                 '复制导出内容至剪贴板',
                 0,
@@ -4354,7 +4214,7 @@ function gudaq(){
                 }),
                 true);
             genericPopupAddCloseButton(80);
- 
+
             let userData = [];
             g_userDataStorageKeyConfig.forEach((item) => {
                 let value = localStorage.getItem(item);
@@ -4363,11 +4223,11 @@ function gudaq(){
                 }
             });
             genericPopupQuerySelector('#user_data_persistence_string').value = userData.join(USER_DATA_xPORT_SEPARATOR);
- 
+
             genericPopupSetContentSize(400, 600, false);
             genericPopupShowModal(true);
         }
- 
+
         function clearUserData() {
             if (confirm('这将清除所有用户配置（护符组定义、卡片装备光环护符绑定、沙滩装备筛选配置等等）和数据，要继续吗？')) {
                 g_userDataStorageKeyConfig.concat(g_userDataStorageKeyExtra).forEach((item) => {
@@ -4377,15 +4237,15 @@ function gudaq(){
                 window.location.reload();
             }
         }
- 
+
         function onekeyOpenCard() {
             readConfig();
- 
+
             let seq = g_configMap.get('openCardSequence')?.value;
             if (!(seq?.length > 0)) {
                 return;
             }
- 
+
             seq = seq.split(',');
             let abs;
             let inc = 0;
@@ -4431,7 +4291,7 @@ function gudaq(){
                     outstanding.splice(ri, 1);
                 }
             }
- 
+
             const openCardRequest = g_httpRequestMap.get('giftop');
             function beginOpenCard(sequence, fnPostProcess, fnParams) {
                 if (sequence?.length > 0) {
@@ -4452,7 +4312,7 @@ function gudaq(){
                     fnPostProcess(fnParams);
                 }
             }
- 
+
             function closeProcess(fnPostProcess) {
                 let asyncObserver = new MutationObserver(() => {
                     asyncObserver.disconnect();
@@ -4461,18 +4321,18 @@ function gudaq(){
                     }
                 });
                 asyncObserver.observe(document.getElementById('gifsall'), { childList : true , subtree : true });
- 
+
                 // refresh card state
                 indre(10, 'gifsall');
             }
- 
+
             genericPopupShowProgressMessage();
             beginOpenCard(openSeq, closeProcess, genericPopupCloseProgressMessage);
         }
- 
+
         function addForgeHistory(attrs) {
             readConfig();
- 
+
             let maxList = (g_configMap.get('maxEquipForgeHistoryList')?.value ?? 0);
             if (maxList <= 0) {
                 return;
@@ -4503,7 +4363,7 @@ function gudaq(){
             let title =
                 `Lv.<span class="fyg_f18">${lv}<span style="font-size:15px;">（${quality}%）</span></span>
                     <span class="fyg_f18 pull-right"><i class="icon icon-star"></i> 0</span><br>${name}`;
- 
+
             let btn = document.createElement('button');
             btn.className = `btn btn-light btn-equipment popover-${g_equipmentLevelStyleClass[eqLv]}`;
             btn.style.minWidth = '240px';
@@ -4517,7 +4377,7 @@ function gudaq(){
                 `<h3 class="popover-title" style="color:white;background-color:black;text-align:center;padding:3px;">${ts.date} ${ts.time}</h3>
                  <h3 class="popover-title bg-${g_equipmentLevelStyleClass[eqLv]}">${title}</h3>
                  <div class="popover-content-show" style="padding:10px 10px 0px 10px;">${div.innerHTML}</div>`;
- 
+
             let history = (localStorage.getItem(g_forgeHistoryStorageKey) ?? '');
             div.innerHTML = history;
             div.insertBefore(btn, div.firstElementChild);
@@ -4526,10 +4386,10 @@ function gudaq(){
             }
             localStorage.setItem(g_forgeHistoryStorageKey, div.innerHTML);
         }
- 
+
         function showForgeHistory() {
             readConfig();
- 
+
             let maxList = (g_configMap.get('maxEquipForgeHistoryList')?.value ?? 0);
             let history = (localStorage.getItem(g_forgeHistoryStorageKey) ?? '');
             let div = document.createElement('div');
@@ -4540,22 +4400,22 @@ function gudaq(){
                 div.lastElementChild.remove();
             }
             localStorage.setItem(g_forgeHistoryStorageKey, div.innerHTML);
- 
+
             let fixedContent =
                 '<div style="padding:20px 10px 10px 0px;color:blue;font-size:15px;"><b><ul>' +
                     '<li>历史记录仅包含在本机上使用本浏览器本帐号以常规方式（即：使用“锻造指定绿色以上装备”按钮）锻造的装备</li>' +
                     '<li>如果您使用多种锻造方式（包括但不限于常规、插件脚本、不同设备、不同浏览器等），此列表参考价值极为有限</li>' +
                     '<li>日期信息取自您锻造时的本机时间，如果您的本机时间不准确则装备锻造时间亦不准确</li></ul></b></div>';
             const mainContent = `<div class="${g_genericPopupTopLineDivClass}" id="historyDiv"></div>`;
- 
+
             genericPopupInitialize();
             genericPopupSetFixedContent(fixedContent);
             genericPopupSetContent('装备锻造历史记录', mainContent);
- 
+
             let historyDiv = genericPopupQuerySelector('#historyDiv');
             historyDiv.appendChild(div);
             fitMystSection(historyDiv);
- 
+
             genericPopupAddButton(
                 '清理记录',
                 0,
@@ -4579,7 +4439,7 @@ function gudaq(){
                                        Math.min(840, Math.max(window.innerWidth - 200, 600)),
                                        true);
             genericPopupShowModal(true);
- 
+
             function fitMystSection(container) {
                 $(`#${container.id} .btn-equipment .bg-danger.with-padding`).css({
                     'max-width': '220px',
@@ -4589,34 +4449,34 @@ function gudaq(){
                 });
             }
         }
- 
+
         (new MutationObserver((mList) => {
             if (mList?.[0]?.target?.style.display != 'none' &&
                 mList?.[0]?.target?.innerHTML?.indexOf('锻造出了新装备') >= 0) {
- 
+
                 let eq = mList?.[0]?.target?.querySelectorAll('p');
                 if (eq?.length > 5) {
                     addForgeHistory(eq);
                 }
             }
         })).observe(document.getElementById('mymessage'), { subtree : true, childList : true });
- 
+
         let timer = setInterval(() => {
             let panels = document.querySelectorAll('div.col-md-3 > div.panel > div.panel-body');
             if (panels?.length >= 2) {
                 clearInterval(timer);
                 genericPopupInitialize();
- 
+
                 let panel = panels[1];
                 let userData = loadUserConfigData();
                 let dataIndex = userData.dataIndex;
- 
+
                 for (var px = panel.firstElementChild; px != null && !px.innerText.startsWith('对玩家战斗'); px = px.nextElementSibling);
                 if (px != null) {
                     let p0 = px.cloneNode(true);
                     let sp = p0.firstElementChild;
                     p0.firstChild.textContent = '对玩家战斗（上次查看）';
- 
+
                     dataIndex.battleInfoNow = px.firstElementChild.innerText;
                     if (dataIndex.battleInfoNow == dataIndex.battleInfoBefore) {
                         sp.innerText = dataIndex.battleInfoBack;
@@ -4632,18 +4492,18 @@ function gudaq(){
                 else {
                     px = panel.firstElementChild;
                 }
- 
+
                 let globalDataBtnContainer = document.createElement('div');
                 globalDataBtnContainer.style.borderTop = '1px solid #d0d0d0';
                 globalDataBtnContainer.style.padding = '10px 0px 0px';
- 
+
                 let versionLabel = px.cloneNode(true);
                 let versionText = versionLabel.firstElementChild;
                 versionLabel.firstChild.textContent = '插件版本：';
                 versionText.innerHTML = `<i class="icon icon-info-sign" data-toggle="tooltip" data-placement="left"
                                             data-original-title="${g_modiTime}"> ${g_version}</i>`;
                 globalDataBtnContainer.appendChild(versionLabel);
- 
+
                 let configBtn = document.createElement('button');
                 configBtn.innerHTML = '设置';
                 configBtn.style.height = '30px';
@@ -4651,37 +4511,37 @@ function gudaq(){
                 configBtn.style.marginBottom = '1px';
                 configBtn.onclick = (() => { modifyConfig(); });
                 globalDataBtnContainer.appendChild(configBtn);
- 
+
                 let importBtn = configBtn.cloneNode(true);
                 importBtn.innerHTML = '导入用户配置数据';
                 importBtn.onclick = (() => { importUserConfigData(); });
                 globalDataBtnContainer.appendChild(importBtn);
- 
+
                 let exportBtn = configBtn.cloneNode(true);
                 exportBtn.innerHTML = '导出用户配置数据';
                 exportBtn.onclick = (() => { exportUserConfigData(); });
                 globalDataBtnContainer.appendChild(exportBtn);
- 
+
                 let eraseBtn = configBtn.cloneNode(true);
                 eraseBtn.innerHTML = '清除用户数据';
                 eraseBtn.onclick = (() => { clearUserData(); });
                 globalDataBtnContainer.appendChild(eraseBtn);
                 px.parentNode.appendChild(globalDataBtnContainer);
- 
+
                 if (g_configMap.get('openCardSequence')?.value?.trim().length > 0) {
                     let openCardBtnContainer = document.createElement('div')
                     openCardBtnContainer.style.textAlign = 'right';
                     openCardBtnContainer.innerHTML =
                         '<span style="color:blue;font-size:16px;">★ 如果您选择使用一键翻牌功能，表明您完全接受最终结果，否则请选择手动翻牌</span>';
- 
+
                     let openCardConfigBtn = document.createElement('button');
                     openCardConfigBtn.className = 'btn btn-lg';
                     openCardConfigBtn.innerHTML = '一键翻牌设置';
                     openCardConfigBtn.style.marginLeft = '15px';
-                    openCardConfigBtn.style.marginRight = '1px';
+                    openCardConfigBtn.style.marginRight = '3px';
                     openCardConfigBtn.onclick = (() => { modifyConfig(['openCardSequence'], '一键翻牌设置'); });
                     openCardBtnContainer.appendChild(openCardConfigBtn);
- 
+
                     let openCardBtn = document.createElement('button');
                     openCardBtn.className = 'btn btn-lg';
                     openCardBtn.innerHTML = '一键翻牌';
@@ -4690,7 +4550,7 @@ function gudaq(){
                     let cardDiv = document.querySelector('#gifsall');
                     cardDiv.parentNode.insertBefore(openCardBtnContainer, cardDiv.nextSibling.nextSibling);
                 }
- 
+
                 let btns = document.querySelectorAll('button.btn.btn-lg');
                 for (let btn of btns) {
                     if (btn.innerText.indexOf('锻造') >= 0) {
@@ -4704,40 +4564,40 @@ function gudaq(){
                         break;
                     }
                 }
- 
+
                 $('[data-toggle="tooltip"]').tooltip();
             }
         }, 200);
     }
     else if (window.location.pathname == g_guguzhenEquip) {
         genericPopupInitialize();
- 
+
         let timer = setInterval(() => {
             let cardingDiv = document.getElementById('carding');
             let backpacksDiv = document.getElementById('backpacks');
             if (cardingDiv?.firstElementChild != null && backpacksDiv?.firstElementChild != null) {
                 clearInterval(timer);
                 loadTheme();
- 
+
                 let panel = document.getElementsByClassName('panel panel-primary')[1];
                 let calcBtn = document.createElement('button');
                 let calcDiv = document.createElement('div');
- 
+
                 calcBtn.innerText = '导出计算器';
                 calcBtn.style.marginLeft = '3px';
                 calcBtn.disabled = 'disabled';
                 calcBtn.onclick = (() => {});
- 
+
                 panel.insertBefore(calcBtn, panel.children[0]);
                 panel.insertBefore(calcDiv, calcBtn);
- 
+
                 const bagQueryString = 'div.alert-danger';
                 const storeQueryString = 'div.alert-success';
                 const cardingObjectsQueryString = 'div.row > div.fyg_tc > button.btn.fyg_mp3';
                 const bagObjectsQueryString = 'div.alert-danger > button.btn.fyg_mp3';
                 const storeObjectsQueryString = 'div.alert-success > button.btn.fyg_mp3';
                 const storeButtonId = 'collapse-backpacks-store';
- 
+
                 let equipmentDiv = document.createElement('div');
                 equipmentDiv.id = 'equipmentDiv';
                 equipmentDiv.style.width = '100%';
@@ -4764,7 +4624,7 @@ function gudaq(){
                      <p><button type="button" class="btn btn-block collapsed" data-toggle="collapse" data-target="#eq3">头部装备 ▼</button></p>
                         <div class="in" id="eq3"></div>
                      <p><button type="button" class="btn btn-block collapsed" id="${storeButtonId}">仓库 ▼</button></p></div>`;
- 
+
                 function refreshEquipmentPage(fnPostProcess) {
                     let asyncOperations = 2;
                     let asyncObserver = new MutationObserver(() => {
@@ -4776,16 +4636,16 @@ function gudaq(){
                         }
                     });
                     asyncObserver.observe(backpacksDiv, { childList : true , subtree : true });
- 
+
                     // refresh #carding & #backpacks
                     cding();
                     eqbp(1);
                 }
- 
+
                 equipmentDiv.querySelector('#objects_Cleanup').onclick = objectsCleanup;
                 function objectsCleanup() {
                     genericPopupInitialize();
- 
+
                     let cancelled = false;
                     function cancelProcess() {
                         if (timer != null) {
@@ -4798,7 +4658,7 @@ function gudaq(){
                             refreshEquipmentPage(() => { genericPopupClose(true); });
                         }
                     }
- 
+
                     let timer = null;
                     function postProcess(closeCountDown) {
                         if (closeCountDown > 0) {
@@ -4816,7 +4676,7 @@ function gudaq(){
                             cancelProcess();
                         }
                     }
- 
+
                     let bagObjects = backpacksDiv.querySelectorAll(bagObjectsQueryString);
                     let storeObjects = backpacksDiv.querySelectorAll(storeObjectsQueryString);
                     function refreshContainer(fnPostProcess) {
@@ -4827,10 +4687,10 @@ function gudaq(){
                                 fnPostProcess();
                             }
                         }
- 
+
                         refreshEquipmentPage(queryObjects);
                     }
- 
+
                     function processEquips() {
                         let equips = [];
                         genericPopupQuerySelectorAll('table.equip-list input.equip-checkbox.equip-item').forEach((e) => {
@@ -4838,7 +4698,7 @@ function gudaq(){
                                 equips.push(e.getAttribute('original-item').split(','));
                             }
                         });
- 
+
                         if (equips.length > 0) {
                             genericPopupShowInformationTips(`丢弃装备...（${equips.length}）`, 0);
                             let ids = findEquipmentIds(storeObjects, equips);
@@ -4853,7 +4713,7 @@ function gudaq(){
                         }
                         processAmulets();
                     }
- 
+
                     function processAmulets() {
                         let amulets = [];
                         let groupItem = 0;
@@ -4869,10 +4729,10 @@ function gudaq(){
                             cancelProcess();
                             return;
                         }
- 
+
                         let bag = 0;
                         pirlAmulets();
- 
+
                         function pirlAmulets() {
                             if (amulets.length > 0) {
                                 genericPopupShowInformationTips(`转换果核...（${amulets.length}）`, 0);
@@ -4912,7 +4772,7 @@ function gudaq(){
                             postProcess(15);
                         }
                     }
- 
+
                     let fixedContent =
                         '<div style="padding:20px 10px 10px 0px;color:blue;font-size:16px;"><b><ul>' +
                           '<li>护符表中被选中的护符会被销毁并转换为果核，此操作不可逆，请谨慎使用</li>' +
@@ -4983,10 +4843,10 @@ function gudaq(){
                            <b class="group-menu">身体装备 （选中 <span>0</span>） ▼${menuItems}</b>${btnGroup}<p />${equipTable}</div>
                          <div class="${g_genericPopupTopLineDivClass}" id="equips4-div">
                            <b class="group-menu">头部装备 （选中 <span>0</span>） ▼${menuItems}</b>${btnGroup}<p />${equipTable}</div>`;
- 
+
                     genericPopupSetFixedContent(fixedContent);
                     genericPopupSetContent('清理库存', mainContent);
- 
+
                     genericPopupQuerySelectorAll('button.btn-group-selection').forEach((btn) => { btn.onclick = batchSelection; });
                     function batchSelection(e) {
                         let selType = parseInt(e.target.getAttribute('select-type'));
@@ -4998,7 +4858,7 @@ function gudaq(){
                         });
                         e.target.parentNode.firstElementChild.firstElementChild.innerText = selCount;
                     }
- 
+
                     const objectTypeColor = [ '#e0fff0', '#ffe0ff', '#fff0e0', '#d0f0ff' ];
                     let bagAmulets = amuletNodesToArray(backpacksDiv.querySelectorAll(bagObjectsQueryString));
                     let groupAmulets = [];
@@ -5022,7 +4882,7 @@ function gudaq(){
                              <td>${item.formatBuff()}</td>`;
                         amulet_selector.appendChild(tr);
                     });
- 
+
                     let eqIndex = 0;
                     let eq_selectors = genericPopupQuerySelectorAll('table.equip-list');
                     let storeEquips = equipmentNodesToInfoArray(backpacksDiv.querySelectorAll(storeObjectsQueryString));
@@ -5045,13 +4905,13 @@ function gudaq(){
                              <td>${formatEquipmentAttributes(item, '</td><td>')}</td>`;
                         eq_selectors[eqMeta.type].appendChild(tr);
                     });
- 
+
                     genericPopupQuerySelectorAll('input.equip-checkbox').forEach((e) => { e.onchange = equipCheckboxStateChange; });
                     function equipCheckboxStateChange(e) {
                         let countSpan = e.target.parentNode.parentNode.parentNode.parentNode.firstElementChild.firstElementChild;
                         countSpan.innerText = parseInt(countSpan.innerText) + (e.target.checked ? 1 : -1);
                     }
- 
+
                     let btnGo = genericPopupAddButton('开始', 80, (() => {
                         genericPopupOnClickOutside(null);
                         operationEnabler(false);
@@ -5063,7 +4923,7 @@ function gudaq(){
                         btnCancel.disabled = 'disabled';
                         cancelProcess();
                     }, false);
- 
+
                     function operationEnabler(enabled) {
                         let v = enabled ? '' : 'disabled';
                         genericPopupQuerySelectorAll('button.btn-group-selection').forEach((e) => { e.disabled = v; });
@@ -5072,23 +4932,23 @@ function gudaq(){
                     }
                     operationEnabler(false);
                     genericPopupQuerySelector('#disclaimer-check').onchange = ((e) => { operationEnabler(e.target.checked); });
- 
+
                     let objectsCount = bagAmulets.length + storeEquips.length + storeAmulets.length;
                     genericPopupSetContentSize(Math.min((objectsCount * 31) + (6 * 104), Math.max(window.innerHeight - 400, 400)),
                                                Math.min(1000, Math.max(window.innerWidth - 200, 600)),
                                                true);
                     genericPopupShowModal(true);
                 }
- 
+
                 ////////////////////////////////////////////////////////////////////////////////
                 //
                 // collapse container
                 //
                 ////////////////////////////////////////////////////////////////////////////////
- 
+
                 let forceEquipDivOperation = true;
                 let equipDivExpanded = {};
- 
+
                 equipmentDiv.querySelectorAll('button.btn.btn-block.collapsed').forEach((btn) => { btn.onclick = backupEquipmentDivState; });
                 function backupEquipmentDivState(e) {
                     let targetDiv = equipmentDiv.querySelector(e.target.getAttribute('data-target'));
@@ -5099,13 +4959,13 @@ function gudaq(){
                         equipDivExpanded[e.target.id] = !equipDivExpanded[e.target.id];
                     }
                 };
- 
+
                 function collapseEquipmentDiv(expand, force) {
                     let targetDiv;
                     equipmentDiv.querySelectorAll('button.btn.btn-block').forEach((btn) => {
                         if (btn.getAttribute('data-toggle') == 'collapse' &&
                             (targetDiv = equipmentDiv.querySelector(btn.getAttribute('data-target'))) != null) {
- 
+
                             let exp = expand;
                             if (equipDivExpanded[targetDiv.id] == null || force) {
                                 equipDivExpanded[targetDiv.id] = exp;
@@ -5113,7 +4973,7 @@ function gudaq(){
                             else {
                                 exp = equipDivExpanded[targetDiv.id];
                             }
- 
+
                             targetDiv.className = (exp ? 'in' : 'collapse');
                             targetDiv.style.height = (exp ? 'auto' : '0px');
                         }
@@ -5128,7 +4988,7 @@ function gudaq(){
                         $('#backpacks > ' + storeQueryString).hide();
                     }
                 }
- 
+
                 let objectContainer = equipmentDiv.querySelector('#equipment_ObjectContainer');
                 function switchObjectContainerStatus(show) {
                     if (show) {
@@ -5146,11 +5006,11 @@ function gudaq(){
                         objectContainer.style.display = 'none';
                         $('#backpacks > ' + storeQueryString).show();
                     }
- 
+
                     equipmentDiv.querySelector('#equipment_Expand').disabled =
                         equipmentDiv.querySelector('#equipment_BG').disabled = (show ? '' : 'disabled');
                 }
- 
+
                 function changeEquipmentDivStyle(bg) {
                     $('#equipmentDiv .backpackDiv').css({
                         'background-color': bg ? 'black' : '#ffe5e0'
@@ -5180,7 +5040,7 @@ function gudaq(){
                         'color': bg ? 'black' : 'white'
                     });
                 }
- 
+
                 let equipmentStoreExpand = setupConfigCheckbox(
                     equipmentDiv.querySelector('#equipment_StoreExpand'),
                     g_equipmentStoreExpandStorageKey,
@@ -5196,7 +5056,7 @@ function gudaq(){
                     g_equipmentBGStorageKey,
                     (checked) => { changeEquipmentDivStyle(equipmentBG = checked); },
                     null);
- 
+
                 let wishpool = [];
                 let userInfo = [];
                 function restructEquipUI(fnPostProcess, fnParams) {
@@ -5220,7 +5080,7 @@ function gudaq(){
                         }
                     }, 200);
                 }
- 
+
                 function addCollapse(fnPostProcess, fnParams) {
                     let waitForBtn = setInterval(() => {
                         if (cardingDiv?.firstElementChild != null && backpacksDiv?.firstElementChild != null) {
@@ -5228,13 +5088,13 @@ function gudaq(){
                             let eqstore = backpacksDiv.querySelectorAll(storeObjectsQueryString);
                             if (eqbtns?.length > 0 || eqstore?.length > 0) {
                                 clearInterval(waitForBtn);
- 
+
                                 eqstore.forEach((item) => { item.dataset.instore = 1; });
                                 eqbtns =
                                     Array.from(eqbtns).concat(
                                     Array.from(backpacksDiv.querySelectorAll(bagObjectsQueryString))).concat(
                                     Array.from(eqstore)).sort(objectNodeComparer);
- 
+
                                 if (!(document.getElementsByClassName('collapsed')?.length > 0)) {
                                     backpacksDiv.insertBefore(equipmentDiv, backpacksDiv.firstElementChild);
                                 }
@@ -5243,7 +5103,7 @@ function gudaq(){
                                         eqbtns.splice(i, 1);
                                     }
                                 }
- 
+
                                 let ineqBackpackDiv =
                                     '<div class="backpackDiv" style="padding:10px;margin-bottom:10px;"></div>' +
                                     '<div class="storeDiv" style="padding:10px;margin-bottom:10px;"></div>';
@@ -5254,7 +5114,7 @@ function gudaq(){
                                                equipmentDiv.querySelector('#eq4'),
                                                equipmentDiv.querySelector('#eq5') ];
                                 eqDivs.forEach((item) => { item.innerHTML = ineqBackpackDiv; });
- 
+
                                 const store = [ '', '【仓】'];
                                 eqbtns.forEach((btn) => {
                                     let equipInfo = equipmentInfoParseNode(btn, true);
@@ -5276,11 +5136,11 @@ function gudaq(){
                                     btn0.innerHTML =
                                         `<h3 class="popover-title bg-${styleClass}">${storeText}${btn.dataset.originalTitle}${enhancements}</h3>
                                          <div class="popover-content-show" style="padding:10px 10px 0px 10px;">${btn.dataset.content}</div>`;
- 
+
                                     if (equipInfo != null && btn0.lastChild.lastChild?.nodeType != Node.ELEMENT_NODE) {
                                         btn0.lastChild.lastChild?.remove();
                                     }
- 
+
                                     let ineq;
                                     if (amulet != null) {
                                         ineq = 4;
@@ -5289,7 +5149,7 @@ function gudaq(){
                                         ineq = g_equipMap.get(equipInfo[0]).type;
                                         btn0.style.minWidth = '240px';
                                         btn0.className += ' btn-equipment';
- 
+
                                         // debug only
                                         if (equipmentVerify(btn, equipInfo) != 0) {
                                             btn.style.border = '3px solid #ff00ff';
@@ -5301,10 +5161,10 @@ function gudaq(){
                                         btn0.lastChild.style.cssText =
                                             'max-width:180px;padding:10px;text-align:center;white-space:pre-line;word-break:break-all;';
                                     }
- 
+
                                     (storeText == '' ? eqDivs[ineq].firstChild : eqDivs[ineq].firstChild.nextSibling).appendChild(btn0);
                                 });
- 
+
                                 eqDivs.forEach((div) => {
                                     for (let area of div.children) {
                                         if (area.children.length == 0) {
@@ -5312,7 +5172,7 @@ function gudaq(){
                                         }
                                     }
                                 });
- 
+
                                 function inputAmuletGroupName(defaultGroupName) {
                                     let groupName = prompt('请输入护符组名称（不超过31个字符，请仅使用大、小写英文字母、数字、连字符、下划线及中文字符）',
                                                            defaultGroupName);
@@ -5324,7 +5184,7 @@ function gudaq(){
                                     }
                                     return null;
                                 }
- 
+
                                 function queryAmulets(bag, store, key) {
                                     let count = 0;
                                     if (bag != null) {
@@ -5337,7 +5197,7 @@ function gudaq(){
                                     }
                                     return count;
                                 }
- 
+
                                 function showAmuletGroupsPopup() {
                                     function beginSaveBagAsGroup(groupName, update) {
                                         let amulets = [];
@@ -5345,9 +5205,9 @@ function gudaq(){
                                         createAmuletGroup(groupName, amulets, update);
                                         showAmuletGroupsPopup();
                                     }
- 
+
                                     genericPopupClose(true);
- 
+
                                     let bag = [];
                                     let store = [];
                                     if (queryAmulets(bag, store) == 0) {
@@ -5355,7 +5215,7 @@ function gudaq(){
                                         refreshEquipmentPage(null);
                                         return;
                                     }
- 
+
                                     let amulets = bag.concat(store);
                                     let bagGroup = amuletCreateGroupFromArray('当前饰品栏', bag);
                                     let groups = amuletLoadGroups();
@@ -5363,7 +5223,7 @@ function gudaq(){
                                         alert('饰品栏为空，且未找到预保存的护符组信息！');
                                         return;
                                     }
- 
+
                                     let bagCells = 8 + parseInt(wishpool[0] ?? 0);
                                     if (userInfo?.[4]?.length > 0) {
                                         bagCells += 2;
@@ -5371,7 +5231,7 @@ function gudaq(){
                                     if (userInfo?.[5]?.length > 0) {
                                         bagCells += 5;
                                     }
- 
+
                                     genericPopupSetContent(
                                         '护符组管理',
                                         '<style> .group-menu { position:relative;' +
@@ -5400,7 +5260,7 @@ function gudaq(){
                                     groupMenuDiv.className = 'group-menu-items';
                                     groupMenuDiv.innerHTML = '<ul></ul>';
                                     let groupMenu = groupMenuDiv.firstChild;
- 
+
                                     if (bagGroup != null) {
                                         let groupDiv = document.createElement('div');
                                         groupDiv.className = g_genericPopupTopLineDivClass;
@@ -5409,13 +5269,13 @@ function gudaq(){
                                         groupDiv.innerHTML =
                                             `<b class="group-menu" style="color:${bagGroup.count() > bagCells ? 'red' : 'blue'};">` +
                                                `当前饰品栏内容 [${bagGroup.count()} / ${bagCells}] ▼</b>`;
- 
+
                                         let mitem = document.createElement('li');
                                         mitem.className = 'group-menu-item';
                                         mitem.innerHTML =
                                             `<a href="#popup_amulet_group_bag">当前饰品栏内容 [${bagGroup.count()} / ${bagCells}]</a>`;
                                         groupMenu.appendChild(mitem);
- 
+
                                         g_amuletTypeNames.slice().reverse().forEach((item) => {
                                             let btn = document.createElement('button');
                                             btn.innerText = '清空' + item;
@@ -5424,7 +5284,7 @@ function gudaq(){
                                             btn.onclick = clearSpecAmulet;
                                             groupDiv.appendChild(btn);
                                         });
- 
+
                                         function clearSpecAmulet(e) {
                                             genericPopupShowProgressMessage('处理中，请稍候...');
                                             beginClearBag(backpacksDiv.querySelectorAll(bagObjectsQueryString),
@@ -5432,7 +5292,7 @@ function gudaq(){
                                                           refreshEquipmentPage,
                                                           showAmuletGroupsPopup);
                                         }
- 
+
                                         let saveBagGroupBtn = document.createElement('button');
                                         saveBagGroupBtn.innerText = '保存为护符组';
                                         saveBagGroupBtn.style.float = 'right';
@@ -5443,17 +5303,17 @@ function gudaq(){
                                             }
                                         });
                                         groupDiv.appendChild(saveBagGroupBtn);
- 
+
                                         let groupInfoDiv = document.createElement('div');
                                         groupInfoDiv.innerHTML =
                                             `<hr><ul style="color:#000080;">${bagGroup.formatBuffSummary('<li>', '</li>', '', true)}</ul>
                                              <hr><ul>${bagGroup.formatItems('<li>', '<li style="color:red;">', '</li>', '</li>', '')}</ul>
                                              <hr><ul><li>AMULET ${bagGroup.formatBuffShortMark(' ', ' ', false)} ENDAMULET</li></ul>`;
                                         groupDiv.appendChild(groupInfoDiv);
- 
+
                                         amuletContainer.appendChild(groupDiv);
                                     }
- 
+
                                     let li = 0
                                     let groupArray = groups.toArray();
                                     let gl = (groupArray?.length ?? 0);
@@ -5461,7 +5321,7 @@ function gudaq(){
                                         groupArray = groupArray.sort((a, b) => a.name < b.name ? -1 : 1);
                                         for (let i = 0; i < gl; i++) {
                                             let err = !groupArray[i].validate(amulets);
- 
+
                                             let groupDiv = document.createElement('div');
                                             groupDiv.className = g_genericPopupTopLineDivClass;
                                             groupDiv.id = 'popup_amulet_group_' + i;
@@ -5469,13 +5329,13 @@ function gudaq(){
                                             groupDiv.innerHTML =
                                                 `<b class="group-menu" style="color:${err ? "red" : "blue"};">` +
                                                 `${groupArray[i].name} [${groupArray[i].count()}] ▼</b>`;
- 
+
                                             let mitem = document.createElement('li');
                                             mitem.className = 'group-menu-item';
                                             mitem.innerHTML =
                                                 `<a href="#popup_amulet_group_${i}">${groupArray[i].name} [${groupArray[i].count()}]</a>`;
                                             groupMenu.appendChild(mitem);
- 
+
                                             let amuletDeleteGroupBtn = document.createElement('button');
                                             amuletDeleteGroupBtn.innerText = '删除';
                                             amuletDeleteGroupBtn.style.float = 'right';
@@ -5487,7 +5347,7 @@ function gudaq(){
                                                 }
                                             });
                                             groupDiv.appendChild(amuletDeleteGroupBtn);
- 
+
                                             let amuletModifyGroupBtn = document.createElement('button');
                                             amuletModifyGroupBtn.innerText = '编辑';
                                             amuletModifyGroupBtn.style.float = 'right';
@@ -5496,7 +5356,7 @@ function gudaq(){
                                                 modifyAmuletGroup(groupName);
                                             });
                                             groupDiv.appendChild(amuletModifyGroupBtn);
- 
+
                                             let importAmuletGroupBtn = document.createElement('button');
                                             importAmuletGroupBtn.innerText = '导入';
                                             importAmuletGroupBtn.style.float = 'right';
@@ -5521,7 +5381,7 @@ function gudaq(){
                                                 }
                                             });
                                             groupDiv.appendChild(importAmuletGroupBtn);
- 
+
                                             let renameAmuletGroupBtn = document.createElement('button');
                                             renameAmuletGroupBtn.innerText = '更名';
                                             renameAmuletGroupBtn.style.float = 'right';
@@ -5542,7 +5402,7 @@ function gudaq(){
                                                 }
                                             });
                                             groupDiv.appendChild(renameAmuletGroupBtn);
- 
+
                                             let updateAmuletGroupBtn = document.createElement('button');
                                             updateAmuletGroupBtn.innerText = '更新';
                                             updateAmuletGroupBtn.style.float = 'right';
@@ -5553,7 +5413,7 @@ function gudaq(){
                                                 }
                                             });
                                             groupDiv.appendChild(updateAmuletGroupBtn);
- 
+
                                             let unamuletLoadGroupBtn = document.createElement('button');
                                             unamuletLoadGroupBtn.innerText = '入仓';
                                             unamuletLoadGroupBtn.style.float = 'right';
@@ -5565,7 +5425,7 @@ function gudaq(){
                                                     groupName, refreshEquipmentPage, showAmuletGroupsPopup);
                                             });
                                             groupDiv.appendChild(unamuletLoadGroupBtn);
- 
+
                                             let amuletLoadGroupBtn = document.createElement('button');
                                             amuletLoadGroupBtn.innerText = '装备';
                                             amuletLoadGroupBtn.style.float = 'right';
@@ -5577,28 +5437,28 @@ function gudaq(){
                                                     groupName, refreshEquipmentPage, showAmuletGroupsPopup);
                                             });
                                             groupDiv.appendChild(amuletLoadGroupBtn);
- 
+
                                             let groupInfoDiv = document.createElement('div');
                                             groupInfoDiv.innerHTML =
                                                 `<hr><ul style="color:#000080;">${groupArray[i].formatBuffSummary('<li>', '</li>', '', true)}</ul>
                                                  <hr><ul>${groupArray[i].formatItems('<li>', '<li style="color:red;">', '</li>', '</li>', '')}</ul>
                                                  <hr><ul><li>AMULET ${groupArray[i].formatBuffShortMark(' ', ' ', false)} ENDAMULET</li></ul>`;
                                             groupDiv.appendChild(groupInfoDiv);
- 
+
                                             amuletContainer.appendChild(groupDiv);
                                             li += groupArray[i].getDisplayStringLineCount();
                                         }
                                     }
- 
+
                                     genericPopupQuerySelectorAll('.group-menu')?.forEach((e) => {
                                         e.appendChild(groupMenuDiv.cloneNode(true));
                                     });
- 
+
                                     if (bagGroup != null) {
                                         gl++;
                                         li += bagGroup.getDisplayStringLineCount();
                                     }
- 
+
                                     genericPopupAddButton('新建护符组', 0, modifyAmuletGroup, true);
                                     genericPopupAddButton(
                                         '导入新护符组',
@@ -5638,12 +5498,12 @@ function gudaq(){
                                         }),
                                         true);
                                     genericPopupAddCloseButton(80);
- 
+
                                     genericPopupSetContentSize(Math.min((li * 20) + (gl * 160) + 60, Math.max(window.innerHeight - 200, 400)),
                                                                Math.min(1000, Math.max(window.innerWidth - 100, 600)),
                                                                true);
                                     genericPopupShowModal(true);
- 
+
                                     if (window.getSelection) {
                                         window.getSelection().removeAllRanges();
                                     }
@@ -5651,12 +5511,12 @@ function gudaq(){
                                         document.getSelection().removeAllRanges();
                                     }
                                 }
- 
+
                                 function modifyAmuletGroup(groupName) {
                                     function divHeightAdjustment(div) {
                                         div.style.height = (div.parentNode.offsetHeight - div.offsetTop - 3) + 'px';
                                     }
- 
+
                                     function refreshAmuletList() {
                                         amuletList.innerHTML = '';
                                         amulets.forEach((am) => {
@@ -5668,7 +5528,7 @@ function gudaq(){
                                             }
                                         });
                                     }
- 
+
                                     function refreshGroupAmuletSummary() {
                                         let count = group.count();
                                         if (count > 0) {
@@ -5682,7 +5542,7 @@ function gudaq(){
                                         divHeightAdjustment(groupAmuletList.parentNode);
                                         amuletCount.innerText = count;
                                     }
- 
+
                                     function refreshGroupAmuletList() {
                                         groupAmuletList.innerHTML = '';
                                         group.items.forEach((am) => {
@@ -5694,12 +5554,12 @@ function gudaq(){
                                             }
                                         });
                                     }
- 
+
                                     function refreshGroupAmuletDiv() {
                                         refreshGroupAmuletSummary();
                                         refreshGroupAmuletList();
                                     }
- 
+
                                     function moveAmuletItem(e) {
                                         let li = e.target;
                                         if (li.tagName == 'LI') {
@@ -5726,7 +5586,7 @@ function gudaq(){
                                             groupChanged = true;
                                         }
                                     }
- 
+
                                     let bag = [];
                                     let store = [];
                                     if (queryAmulets(bag, store) == 0) {
@@ -5735,7 +5595,7 @@ function gudaq(){
                                     }
                                     let amulets = bag.concat(store).sort((a, b) => a.compareTo(b));
                                     amulets.forEach((item, index) => { item.id = index; });
- 
+
                                     let displayName = groupName;
                                     if (!amuletIsValidGroupName(displayName)) {
                                         displayName = '(未命名)';
@@ -5744,7 +5604,7 @@ function gudaq(){
                                     else if (displayName.length > 20) {
                                         displayName = displayName.slice(0, 19) + '...';
                                     }
- 
+
                                     let groupChanged = false;
                                     let group = amuletLoadGroup(groupName);
                                     if (!group?.isValid()) {
@@ -5764,9 +5624,9 @@ function gudaq(){
                                             }
                                         });
                                     }
- 
+
                                     genericPopupClose(true);
- 
+
                                     let fixedContent =
                                         '<div style="padding:20px 0px 5px 0px;font-size:18px;color:blue;"><b>' +
                                         '<span>左键双击或上下文菜单键单击护符条目以进行添加或移除操作</span><span style="float:right;">共 ' +
@@ -5792,17 +5652,17 @@ function gudaq(){
                                             '</div>' +
                                           '</div>' +
                                         '</div>';
- 
+
                                     genericPopupSetFixedContent(fixedContent);
                                     genericPopupSetContent('编辑护符组 - ' + displayName, mainContent);
- 
+
                                     let amuletCount = genericPopupQuerySelector('#amulet_count');
                                     let amuletFilter = -1;
                                     let amuletFilterList = genericPopupQuerySelector('#amulet_filter');
                                     let amuletList = genericPopupQuerySelector('#amulet_list');
                                     let groupSummary = genericPopupQuerySelector('#group_summary');
                                     let groupAmuletList = genericPopupQuerySelector('#group_amulet_list');
- 
+
                                     function addAmuletFilterItem(text, amuletTypesId, checked) {
                                         let check = document.createElement('input');
                                         check.type = 'radio';
@@ -5819,31 +5679,31 @@ function gudaq(){
                                                 refreshAmuletList();
                                             }
                                         });
- 
+
                                         let label = document.createElement('label');
                                         label.innerText = text;
                                         label.setAttribute('for', check.id);
                                         label.style.cursor = 'pointer';
                                         label.style.marginLeft = '5px';
- 
+
                                         amuletFilterList.appendChild(check);
                                         amuletFilterList.appendChild(label);
                                     }
- 
+
                                     for (let amuletType of g_amuletTypeNames) {
                                         addAmuletFilterItem(amuletType,
                                                             g_amuletTypeIds[amuletType.slice(0, g_amuletTypeIds.end - g_amuletTypeIds.start)],
                                                             false);
                                     }
                                     addAmuletFilterItem('全部', -1, true);
- 
+
                                     refreshAmuletList();
                                     refreshGroupAmuletDiv();
- 
+
                                     amuletList.parentNode.oncontextmenu = groupAmuletList.parentNode.oncontextmenu = (() => false);
                                     amuletList.oncontextmenu = groupAmuletList.oncontextmenu = moveAmuletItem;
                                     amuletList.ondblclick = groupAmuletList.ondblclick = moveAmuletItem;
- 
+
                                     genericPopupAddButton(
                                         '清空护符组',
                                         0,
@@ -5851,15 +5711,15 @@ function gudaq(){
                                             if (group.count() > 0) {
                                                 group.items.forEach((am) => { insertElement(amulets, am, (a, b) => a.id - b.id); });
                                                 group.clear();
- 
+
                                                 refreshAmuletList();
                                                 refreshGroupAmuletDiv();
- 
+
                                                 groupChanged = true;
                                             }
                                         }),
                                         true);
- 
+
                                     if (amuletIsValidGroupName(groupName)) {
                                         genericPopupAddButton(
                                             '另存为',
@@ -5869,17 +5729,17 @@ function gudaq(){
                                                     alert('护符组内容存在错误，请检查！');
                                                     return;
                                                 }
- 
+
                                                 let gn = inputAmuletGroupName(groupName);
                                                 if (gn == null) {
                                                     return;
                                                 }
- 
+
                                                 let groups = amuletLoadGroups();
                                                 if (groups.contains(gn) && !confirm(`护符组 "${gn}" 已存在，要覆盖吗？`)) {
                                                     return;
                                                 }
- 
+
                                                 group.name = gn;
                                                 if (groups.add(group)) {
                                                     amuletSaveGroups(groups);
@@ -5891,7 +5751,7 @@ function gudaq(){
                                             }),
                                             false);
                                     }
- 
+
                                     genericPopupAddButton(
                                         '确认',
                                         80,
@@ -5904,7 +5764,7 @@ function gudaq(){
                                                 alert('护符组内容存在错误，请检查！');
                                                 return;
                                             }
- 
+
                                             let groups = amuletLoadGroups();
                                             if (!amuletIsValidGroupName(groupName)) {
                                                 let gn = inputAmuletGroupName(displayName);
@@ -5913,7 +5773,7 @@ function gudaq(){
                                                 }
                                                 group.name = gn;
                                             }
- 
+
                                             if (groups.add(group)) {
                                                 amuletSaveGroups(groups);
                                                 showAmuletGroupsPopup();
@@ -5923,7 +5783,7 @@ function gudaq(){
                                             }
                                         }),
                                         false);
- 
+
                                     let btnCancel = genericPopupAddButton(
                                         '取消',
                                         80,
@@ -5933,17 +5793,17 @@ function gudaq(){
                                             }
                                         }),
                                         false);
- 
+
                                     genericPopupSetContentSize(Math.min(800, Math.max(window.innerHeight - 200, 500)),
                                                                Math.min(1000, Math.max(window.innerWidth - 100, 600)),
                                                                false);
                                     genericPopupShowModal(false);
                                     genericPopupOnClickOutside(btnCancel.onclick);
- 
+
                                     divHeightAdjustment(amuletList.parentNode);
                                     divHeightAdjustment(groupAmuletList.parentNode);
                                 }
- 
+
                                 function createAmuletGroup(groupName, amulets, update) {
                                     let group = amuletCreateGroupFromArray(groupName, amulets);
                                     if (group != null) {
@@ -5965,7 +5825,7 @@ function gudaq(){
                                     genericPopupClose(true);
                                     return false;
                                 }
- 
+
                                 function formatAmuletsString() {
                                     let bag = [];
                                     let store = [];
@@ -5980,7 +5840,7 @@ function gudaq(){
                                     }
                                     return (exportLines.length > 0 ? exportLines.join('\n') : '');
                                 }
- 
+
                                 function exportAmulets() {
                                     genericPopupSetContent(
                                         '护符导出',
@@ -5988,7 +5848,7 @@ function gudaq(){
                                          请勿修改任何导出内容，将其保存为纯文本在其它相应工具中使用</div></b>
                                          <div style="height:330px;"><textarea id="amulet_persistence_string" readonly="true"
                                          style="height:100%;width:100%;resize:none;"></textarea></div>`);
- 
+
                                     genericPopupAddButton(
                                         '复制导出内容至剪贴板',
                                         0,
@@ -6013,13 +5873,13 @@ function gudaq(){
                                         }),
                                         true);
                                     genericPopupAddCloseButton(80);
- 
+
                                     genericPopupQuerySelector('#amulet_persistence_string').value = formatAmuletsString();
- 
+
                                     genericPopupSetContentSize(400, 600, false);
                                     genericPopupShowModal(true);
                                 }
- 
+
                                 let amuletButtonsGroupContainer = document.getElementById('amulet_management_btn_group');
                                 if (amuletButtonsGroupContainer == null) {
                                     let equipCtrlContainer = document.querySelector('#equip-ctrl-container');
@@ -6028,7 +5888,7 @@ function gudaq(){
                                     amuletButtonsGroupContainer.style.display = 'inline-block';
                                     amuletButtonsGroupContainer.style.float = 'left';
                                     equipCtrlContainer.insertBefore(amuletButtonsGroupContainer, equipCtrlContainer.firstElementChild);
- 
+
                                     let exportAmuletsBtn = document.createElement('button');
                                     exportAmuletsBtn.innerText = '导出护符';
                                     exportAmuletsBtn.style.width = '100px';
@@ -6037,7 +5897,7 @@ function gudaq(){
                                         exportAmulets();
                                     });
                                     amuletButtonsGroupContainer.appendChild(exportAmuletsBtn);
- 
+
                                     let clearAmuletGroupBtn = document.createElement('button');
                                     clearAmuletGroupBtn.innerText = '清除护符组';
                                     clearAmuletGroupBtn.style.width = '100px';
@@ -6049,7 +5909,7 @@ function gudaq(){
                                         }
                                     });
                                     amuletButtonsGroupContainer.appendChild(clearAmuletGroupBtn);
- 
+
                                     let manageAmuletGroupBtn = document.createElement('button');
                                     manageAmuletGroupBtn.innerText = '管理护符组';
                                     manageAmuletGroupBtn.style.width = '100px';
@@ -6058,7 +5918,7 @@ function gudaq(){
                                         showAmuletGroupsPopup();
                                     });
                                     amuletButtonsGroupContainer.appendChild(manageAmuletGroupBtn);
- 
+
                                     document.getElementById(storeButtonId).onclick = (() => {
                                         if ($('#backpacks > ' + storeQueryString).css('display') == 'none') {
                                             $('#backpacks > ' + storeQueryString).show();
@@ -6068,7 +5928,7 @@ function gudaq(){
                                         backupEquipmentDivState({ target : document.getElementById(storeButtonId) });
                                     });
                                 }
- 
+
                                 let bagButtonsGroupContainer = document.getElementById('bag_management_btn_group');
                                 if (bagButtonsGroupContainer == null) {
                                     let bagTitle = backpacksDiv.querySelector(bagQueryString + ' > p.fyg_tr');
@@ -6078,7 +5938,7 @@ function gudaq(){
                                     bagButtonsGroupContainer.style.float = 'left';
                                     bagButtonsGroupContainer.style.marginTop = '6px';
                                     bagTitle.insertBefore(bagButtonsGroupContainer, bagTitle.firstElementChild);
- 
+
                                     let beginClearBagBtn = document.createElement('button');
                                     beginClearBagBtn.innerText = '清空饰品栏';
                                     beginClearBagBtn.style.width = '100px';
@@ -6090,7 +5950,7 @@ function gudaq(){
                                             null, refreshEquipmentPage, () => { genericPopupClose(true, true); });
                                     });
                                     bagButtonsGroupContainer.appendChild(beginClearBagBtn);
- 
+
                                     let amuletSaveGroupBtn = document.createElement('button');
                                     amuletSaveGroupBtn.innerText = '存为护符组';
                                     amuletSaveGroupBtn.style.width = '100px';
@@ -6108,18 +5968,18 @@ function gudaq(){
                                     });
                                     bagButtonsGroupContainer.appendChild(amuletSaveGroupBtn);
                                 }
- 
+
                                 $('#equipmentDiv .btn-equipment .bg-danger.with-padding').css({
                                     'max-width': '220px',
                                     'padding': '5px 5px 5px 5px',
                                     'white-space': 'pre-line',
                                     'word-break': 'break-all'
                                 });
- 
+
                                 collapseEquipmentDiv(equipmentExpand, forceEquipDivOperation);
                                 changeEquipmentDivStyle(equipmentBG);
                                 switchObjectContainerStatus(!equipmentStoreExpand);
- 
+
                                 forceEquipDivOperation = false;
                             }
                             if (fnPostProcess != null) {
@@ -6128,7 +5988,7 @@ function gudaq(){
                         }
                     }, 200);
                 }
- 
+
                 const g_genCalcCfgPopupLinkId = 'gen_calc_cfg_popup_link';
                 const g_bindingPopupLinkId = 'binding_popup_link';
                 const g_bindingSolutionId = 'binding_solution_div';
@@ -6146,13 +6006,15 @@ function gudaq(){
                                 udata.dataBindDefault[roleId] = solution;
                                 saveUserConfigData(udata);
                             }
-                            switchSolution(solutionSelector.value, cding);
+                            genericPopupInitialize();
+                            genericPopupShowProgressMessage('读取中，请稍候...');
+                            switchBindingSolution(solutionSelector.value, cding);
                             return;
                         }
                     }
                     alert('绑定信息读取失败，无法装备！');
                 }
- 
+
                 const BINDING_NAME_DEFAULT = '(未命名)';
                 function showBindingPopup() {
                     let role = g_roleMap.get(backpacksDiv.querySelector('div.row > div.col-md-3 > span.text-info.fyg_f24')?.innerText);
@@ -6169,12 +6031,16 @@ function gudaq(){
                         alert('读取卡片信息失败，无法执行绑定操作！');
                         return;
                     }
- 
-                    let bindInfo = readBindingSolutionList(role.id);
- 
+
+                    let bind_info = null;
+                    let udata = loadUserConfigData();
+                    if (udata.dataBind[role.id] != null) {
+                        bind_info = udata.dataBind[role.id];
+                    }
+
                     genericPopupInitialize();
                     genericPopupShowProgressMessage('读取中，请稍候...');
- 
+
                     const highlightBackgroundColor = '#80c0f0';
                     const fixedContent =
                         '<style> .binding-list  { position:relative; width:100%; display:inline-block; } ' +
@@ -6215,15 +6081,15 @@ function gudaq(){
                              <span class="equipment_label">头部装备：</span><select class="equipment_selector"></select><br></div>
                          <div class="${g_genericPopupTopLineDivClass}"><div id="halo_selector"></div></div>
                          <div class="${g_genericPopupTopLineDivClass}" id="amulet_selector" style="display:block;"><div></div></div>`;
- 
+
                     genericPopupSetFixedContent(fixedContent);
                     genericPopupSetContent(`${role.name} - ${roleLv} 级`, mainContent);
- 
+
                     let eq_selectors = genericPopupQuerySelectorAll('select.equipment_selector');
                     let asyncOperations = 4;
                     let haloMax = 0;
                     let haloGroupItemMax = 0;
- 
+
                     let store = [];
                     beginReadObjects(
                         null,
@@ -6231,14 +6097,14 @@ function gudaq(){
                         () => {
                             let equipment = equipmentNodesToInfoArray(store);
                             equipmentNodesToInfoArray(cardingDiv.querySelectorAll(cardingObjectsQueryString), equipment);
- 
+
                             equipment.sort((e1, e2) => {
                                 if (e1[0] != e2[0]) {
                                     return (g_equipMap.get(e1[0]).index - g_equipMap.get(e2[0]).index);
                                 }
                                 return -equipmentInfoComparer(e1, e2);
                             });
- 
+
                             equipment.forEach((item) => {
                                 let eqMeta = g_equipMap.get(item[0]);
                                 let lv = objectGetLevel(item);
@@ -6253,7 +6119,7 @@ function gudaq(){
                                 op.value = item.slice(0, -1).join(',');
                                 eq_selectors[eqMeta.type].appendChild(op);
                             });
- 
+
                             eq_selectors.forEach((eqs) => {
                                 eqs.onchange = equipSelectionChange;
                                 equipSelectionChange({ target : eqs });
@@ -6266,7 +6132,7 @@ function gudaq(){
                             asyncOperations--;
                         },
                         null);
- 
+
                     let currentHalo;
                     beginReadHaloInfo(
                         currentHalo = [],
@@ -6304,7 +6170,7 @@ function gudaq(){
                                     haloGroupItemMax = haloGroups[group].children.length;
                                 }
                             });
- 
+
                             function selector_halo() {
                                 let hp = parseInt(haloPoints.innerText);
                                 let hs = parseInt(haloSlots.innerText);
@@ -6326,7 +6192,7 @@ function gudaq(){
                                 haloSlots.style.color = (hs <= roleHs ? '#0000c0' : 'red');
                                 haloErrors.style.display = (hp <= haloMax && hs <= roleHs ? 'none' : 'inline-block');
                             }
- 
+
                             haloPoints = genericPopupQuerySelector('#halo_points');
                             haloSlots = genericPopupQuerySelector('#halo_slots');
                             haloErrors = genericPopupQuerySelector('#halo_errors');
@@ -6337,7 +6203,7 @@ function gudaq(){
                             asyncOperations--;
                         },
                         null);
- 
+
                     if (wishpool.length == 0) {
                         beginReadWishpool(wishpool, null, () => { asyncOperations--; }, null);
                     }
@@ -6350,7 +6216,7 @@ function gudaq(){
                     else {
                         asyncOperations--;
                     }
- 
+
                     function collectBindingInfo() {
                         let halo = [];
                         let sum = 0;
@@ -6367,27 +6233,27 @@ function gudaq(){
                             if (role.hasG) {
                                 roleInfo.splice(1, 0, 'G=' + roleGv);
                             }
- 
+
                             let amuletArray = [];
                             $('.amulet_item').each(function(i, e) {
                                 if ($(e).attr('item-selected') == 1) {
                                     amuletArray[parseInt(e.lastChild.innerText) - 1] = ($(e).attr('original-item'));
                                 }
                             });
- 
+
                             let eqs = [];
                             eq_selectors.forEach((eq) => { eqs.push(eq.value); });
- 
+
                             return [ roleInfo, wishpool.slice(-14), amuletArray, rolePt, eqs, halo ];
                         }
                         return null;
                     }
- 
+
                     function generateExportString() {
                         let info = collectBindingInfo();
                         if (info?.length > 0) {
                             let exp = [ info[0].join(' '), 'WISH ' + info[1].join(' ') ];
- 
+
                             let ag = new AmuletGroup();
                             ag.name = 'export-temp';
                             info[2].forEach((gn) => {
@@ -6396,21 +6262,21 @@ function gudaq(){
                             if (ag.isValid()) {
                                 exp.push(`AMULET ${ag.formatBuffShortMark(' ', ' ', false)} ENDAMULET`);
                             }
- 
+
                             exp.push(info[3].join(' '));
- 
+
                             info[4].forEach((eq) => {
                                 let a = eq.split(',');
                                 a.splice(2, 2);
                                 exp.push(a.join(' '));
                             });
- 
+
                             let halo = [ info[5].length ];
                             info[5].forEach((h) => {
                                 halo.push(g_haloMap.get(h).shortMark);
                             });
                             exp.push(halo.join(' '));
- 
+
                             return exp.join('\n') + '\n';
                         }
                         else {
@@ -6418,7 +6284,7 @@ function gudaq(){
                         }
                         return null;
                     }
- 
+
                     function unbindAll() {
                         if (confirm('这将清除本卡片全部绑定方案，继续吗？')) {
                             let udata = loadUserConfigData();
@@ -6432,10 +6298,10 @@ function gudaq(){
                             genericPopupShowInformationTips('解除全部绑定成功', 5000);
                         }
                     };
- 
+
                     function deleteBinding() {
                         if (validateBindingName()) {
-                            let bindings = [];
+                            bindings = [];
                             let found = false;
                             $('.binding-name').each((index, item) => {
                                 if (item.innerText == bindingName.value) {
@@ -6469,7 +6335,7 @@ function gudaq(){
                             }
                         }
                     };
- 
+
                     function saveBinding() {
                         if (validateBindingName()) {
                             let info = collectBindingInfo();
@@ -6477,7 +6343,7 @@ function gudaq(){
                                 let bind_info = [ info[4][0], info[4][1], info[4][2], info[4][3],
                                                   info[5].join(','), info[2].join(',') ].join(BINDING_ELEMENT_SEPARATOR);
                                 let newBinding = true;
-                                let bindings = [];
+                                bindings = [];
                                 $('.binding-name').each((index, item) => {
                                     if (item.innerText == bindingName.value) {
                                         item.setAttribute('original-item', bind_info);
@@ -6494,7 +6360,7 @@ function gudaq(){
                                     bindingList.insertBefore(li, li0);
                                     bindings.push(`${bindingName.value}${BINDING_NAME_SEPARATOR}${bind_info}`);
                                 }
- 
+
                                 let udata = loadUserConfigData();
                                 udata.dataBind[role.id] = bindings.join(BINDING_SEPARATOR);
                                 saveUserConfigData(udata);
@@ -6506,17 +6372,17 @@ function gudaq(){
                             }
                         }
                     }
- 
+
                     function isValidBindingName(bindingName) {
                         return (bindingName?.length > 0 && bindingName.length < 32 && bindingName.search(USER_STORAGE_RESERVED_SEPARATORS) < 0);
                     }
- 
+
                     function validateBindingName() {
                         let valid = isValidBindingName(bindingName.value);
                         genericPopupShowInformationTips(valid ? null : '方案名称不符合规则，请检查');
                         return valid;
                     }
- 
+
                     function validateBinding() {
                         if (validateBindingName) {
                             let ol = bindingList.children.length;
@@ -6528,7 +6394,7 @@ function gudaq(){
                             }
                         }
                     }
- 
+
                     function representBinding(items) {
                         if (items?.length > 0) {
                             let elements = items.split(BINDING_ELEMENT_SEPARATOR);
@@ -6579,7 +6445,7 @@ function gudaq(){
                             }
                         }
                     }
- 
+
                     function selector_amulet() {
                         let ac = parseInt(amuletCount.innerText);
                         let tc = parseInt($(this).text().match(/\[(\d+)\]/)[1]);
@@ -6608,7 +6474,7 @@ function gudaq(){
                         amuletCount.innerText = ac + ' / ' + bagCells;
                         amuletCount.style.color = (ac <= bagCells ? 'blue' : 'red');
                     }
- 
+
                     let bindingList = genericPopupQuerySelector('#binding_list').firstChild;
                     let bindingName = genericPopupQuerySelector('#binding_name');
                     let haloPoints = null;
@@ -6619,7 +6485,7 @@ function gudaq(){
                     let amuletGroups = amuletLoadGroups();
                     let selectedAmuletGroupCount = 0;
                     let bagCells = 8;
- 
+
                     let amuletGroupCount = (amuletGroups?.count() ?? 0);
                     if (amuletGroupCount > 0) {
                         amuletContainer.innerHTML =
@@ -6650,10 +6516,25 @@ function gudaq(){
                                     '并在其中使用将饰品栏内容 [ <b style="color:#0000c0;">存为护符组</b> ] 功能，' +
                                     '或在 [ <b style="color:#0000c0;">管理护符组</b> ] 相应功能中进行定义。</li></ul>';
                     }
- 
-                    bindInfo?.[0].bindings.forEach((item) => {
-                        let binding = item.binding.split(BINDING_ELEMENT_SEPARATOR);
-                        if (binding.length == 6) {
+
+                    let bindings = null;
+                    if (bind_info != null) {
+                        bindings = bind_info.split(BINDING_SEPARATOR).sort((a, b) => {
+                            a = a.split(BINDING_NAME_SEPARATOR);
+                            b = b.split(BINDING_NAME_SEPARATOR);
+                            a = a.length > 1 ? a[0] : BINDING_NAME_DEFAULT;
+                            b = b.length > 1 ? b[0] : BINDING_NAME_DEFAULT;
+                            return a < b ? -1 : 1;
+                        });
+                    }
+                    else {
+                        bindings = [];
+                    }
+
+                    bindings.forEach((item) => {
+                        let elements = item.split(BINDING_NAME_SEPARATOR);
+                        let binding = elements[elements.length - 1].split(BINDING_ELEMENT_SEPARATOR);
+                        if (binding.length > 5) {
                             let amuletGroupNames = binding[5].split(',');
                             let ag = '';
                             let sp = '';
@@ -6665,21 +6546,21 @@ function gudaq(){
                                 }
                             }
                             binding[5] = ag;
-                            item.binding = binding.join(BINDING_ELEMENT_SEPARATOR);
+                            elements[elements.length - 1] = binding.join(BINDING_ELEMENT_SEPARATOR);
                         }
- 
+
                         let op = document.createElement('li');
                         op.className = 'binding-name';
-                        op.innerText = item.name;
-                        op.setAttribute('original-item', item.binding);
+                        op.innerText = (elements.length > 1 ? elements[0] : BINDING_NAME_DEFAULT);
+                        op.setAttribute('original-item', elements[elements.length - 1]);
                         bindingList.appendChild(op);
                     });
- 
+
                     let timer = setInterval(() => {
                         if (asyncOperations == 0) {
                             clearInterval(timer);
                             httpRequestClearAll();
- 
+
                             bagCells += parseInt(wishpool[0] ?? 0);
                             if (userInfo?.[4]?.length > 0) {
                                 bagCells += 2;
@@ -6691,7 +6572,7 @@ function gudaq(){
                                 amuletCount.innerText = '0 / ' + bagCells;
                                 amuletCount.style.color = 'blue';
                             }
- 
+
                             let solutionSelector = document.getElementById(g_bindingListSelectorId);
                             let selectedOption = solutionSelector?.options?.[solutionSelector.selectedIndex];
                             if (selectedOption != null) {
@@ -6705,7 +6586,7 @@ function gudaq(){
                             else {
                                 bindingName.value = BINDING_NAME_DEFAULT;
                             }
- 
+
                             bindingName.oninput = validateBindingName;
                             bindingName.onchange = validateBinding;
                             bindingList.onclick = ((e) => {
@@ -6715,7 +6596,7 @@ function gudaq(){
                                     representBinding(li.getAttribute('original-item'));
                                 }
                             });
- 
+
                             genericPopupQuerySelector('#copy_export_string').onclick = (() => {
                                 genericPopupQuerySelector('#role_export_string').select();
                                 if (document.execCommand('copy')) {
@@ -6725,16 +6606,16 @@ function gudaq(){
                                     genericPopupShowInformationTips('复制失败，请进行手工复制（CTRL+A, CTRL+C）');
                                 }
                             });
- 
+
                             genericPopupQuerySelector('#hide_export_div').onclick = (() => {
                                 genericPopupQuerySelector('#role_export_div').style.display = 'none';
                             });
- 
+
                             genericPopupSetContentSize(Math.min((haloGroupItemMax + amuletGroupCount) * 20
                                                                                   + (amuletGroupCount > 0 ? 60 : 160) + 260,
                                                                 window.innerHeight - 200),
                                                        680, true);
- 
+
                             genericPopupAddButton('解除绑定', 0, deleteBinding, true);
                             genericPopupAddButton('全部解绑', 0, unbindAll, true);
                             genericPopupAddButton('绑定', 80, saveBinding, false);
@@ -6750,13 +6631,13 @@ function gudaq(){
                                 },
                                 false);
                             genericPopupAddCloseButton(80);
- 
+
                             genericPopupCloseProgressMessage();
                             genericPopupShowModal(true);
                         }
                     }, 200);
                 }
- 
+
                 function showCalcConfigGenPopup() {
                     let role = g_roleMap.get(backpacksDiv.querySelector('div.row > div.col-md-3 > span.text-info.fyg_f24')?.innerText);
                     let cardInfos = backpacksDiv.querySelectorAll('.icon.icon-angle-down.text-primary');
@@ -6773,10 +6654,10 @@ function gudaq(){
                         alert('读取卡片信息失败，无法执行配置生成操作！');
                         return;
                     }
- 
+
                     genericPopupInitialize();
                     genericPopupShowProgressMessage('读取中，请稍候...');
- 
+
                     const monsters = [
                         {
                             name : '六边形战士',
@@ -6807,7 +6688,7 @@ function gudaq(){
                             shortMark : 'HAO2'
                         }
                     ];
- 
+
                     let fixedContent =
                         '<div style="padding:20px 10px 10px 0px;color:blue;font-size:16px;"><b><ul>' +
                           '<li>初次使用本功能时请先仔细阅读咕咕镇计算器相关资料及此后各部分设置说明以便对其中涉及到的概念及元素建立基本认识</li>' +
@@ -6996,10 +6877,10 @@ function gudaq(){
                               <button type="button" style="float:right;" id="copy-to-clipboard">复制导出内容至剪贴板</button>
                               <button type="button" style="float:right;" id="save-template-do-export">保存模板并生成配置</button>
                               <button type="button" style="float:right;" id="do-export">生成配置</button></div></div>`;
- 
+
                     genericPopupSetFixedContent(fixedContent);
                     genericPopupSetContent('咕咕镇计算器配置生成（PVE）', mainContent);
- 
+
                     genericPopupQuerySelectorAll('button.btn-group-selection').forEach((btn) => { btn.onclick = batchSelection; });
                     function batchSelection(e) {
                         let selType = parseInt(e.target.getAttribute('select-type'));
@@ -7011,7 +6892,7 @@ function gudaq(){
                         });
                         e.target.parentNode.firstElementChild.firstElementChild.innerText = selCount;
                     }
- 
+
                     function countGenericCheckbox(div) {
                         let selsum = 0;
                         genericPopupQuerySelectorAll(`${div} input.generic-checkbox`).forEach((e) => {
@@ -7021,7 +6902,7 @@ function gudaq(){
                         });
                         genericPopupQuerySelector(`${div} b span`).innerText = selsum;
                     }
- 
+
                     let asyncOperations = 4;
                     let equipItemCount = 0;
                     let bag = [];
@@ -7032,7 +6913,7 @@ function gudaq(){
                         () => {
                             let equipment = equipmentNodesToInfoArray(store);
                             equipmentNodesToInfoArray(cardingDiv.querySelectorAll(cardingObjectsQueryString), equipment);
- 
+
                             let eqIndex = 0;
                             let eq_selectors = genericPopupQuerySelectorAll('table.equip-list');
                             equipment.sort((e1, e2) => {
@@ -7055,7 +6936,7 @@ function gudaq(){
                                 eq_selectors[eqMeta.type].appendChild(tr);
                             });
                             equipItemCount = equipment.length;
- 
+
                             let bagGroup = amuletCreateGroupFromArray('temp', amuletNodesToArray(bag));
                             if (bagGroup?.isValid()) {
                                 let radio = genericPopupQuerySelector('#amulet-config-bag');
@@ -7065,7 +6946,7 @@ function gudaq(){
                             asyncOperations--;
                         },
                         null);
- 
+
                     const highlightBackgroundColor = '#80c0f0';
                     let haloMax = 0;
                     let haloPoints = null;
@@ -7119,7 +7000,7 @@ function gudaq(){
                                 a.className = 'halo_item_exclude';
                                 haloExGroups[group].appendChild(a);
                             });
- 
+
                             function selector_halo() {
                                 let hp = parseInt(haloPoints.innerText);
                                 let hs = parseInt(haloSlots.innerText);
@@ -7141,7 +7022,7 @@ function gudaq(){
                                 haloSlots.style.color = (hs <= roleHs ? '#0000c0' : 'red');
                                 haloErrors.style.display = (hp <= haloMax && hs <= roleHs ? 'none' : 'inline-block');
                             }
- 
+
                             haloPoints = genericPopupQuerySelector('#halo_points');
                             haloSlots = genericPopupQuerySelector('#halo_slots');
                             haloErrors = genericPopupQuerySelector('#halo_errors');
@@ -7149,7 +7030,7 @@ function gudaq(){
                                 $(e).on('click', selector_halo);
                                 $(e).attr('original-item', $(e).text().split(' ')[0]);
                             });
- 
+
                             function selector_halo_exclude() {
                                 if ($(this).attr('item-selected') != 1) {
                                     $(this).attr('item-selected', 1);
@@ -7160,7 +7041,7 @@ function gudaq(){
                                     $(this).css('background-color', g_genericPopupBackgroundColor);
                                 }
                             }
- 
+
                             $('.halo_item_exclude').each(function(i, e) {
                                 $(e).on('click', selector_halo_exclude);
                                 $(e).attr('original-item', $(e).text().split(' ')[0]);
@@ -7168,7 +7049,7 @@ function gudaq(){
                             asyncOperations--;
                         },
                         null);
- 
+
                     if (wishpool.length == 0) {
                         beginReadWishpool(wishpool, null, () => { asyncOperations--; }, null);
                     }
@@ -7181,7 +7062,7 @@ function gudaq(){
                     else {
                         asyncOperations--;
                     }
- 
+
                     let mon_selector = genericPopupQuerySelector('table.mon-list');
                     monsters.forEach((e, i) => {
                         let tr = document.createElement('tr');
@@ -7210,7 +7091,7 @@ function gudaq(){
                         }
                     }
                     countGenericCheckbox('#mon-div');
- 
+
                     let roleInfo = genericPopupQuerySelector('#role-info');
                     let rolePtsSum = roleInfo.querySelector('#role-points-summary');
                     let textPts = roleInfo.querySelectorAll('input');
@@ -7242,7 +7123,7 @@ function gudaq(){
                             }
                         });
                     });
- 
+
                     let amuletRadioGroup = genericPopupQuerySelectorAll('#amulet-div input.amulet-config');
                     let bagCells = 8;
                     let amuletContainer = genericPopupQuerySelector('#amulet_selector');
@@ -7285,7 +7166,7 @@ function gudaq(){
                         amuletCount.innerText = ac + ' / ' + bagCells;
                         amuletCount.style.color = (ac <= bagCells ? 'blue' : 'red');
                     }
- 
+
                     function generateTemplate() {
                         let template = {
                             monster : { batchData : [] },
@@ -7306,18 +7187,18 @@ function gudaq(){
                         genericPopupQuerySelectorAll('#mon-div input.mon-batch-data').forEach((e) => {
                             template.monster.batchData.push(e.value);
                         });
- 
+
                         template.role.useWishpool = genericPopupQuerySelector('#role-useWishpool').checked;
                         genericPopupQuerySelectorAll('#role-info input').forEach((e, i) => {
                             template.role.points.push(e.value);
                         });
- 
+
                         genericPopupQuerySelectorAll('table.equip-list input.equip-checkbox.equip-item').forEach((e) => {
                             if (e.checked) {
                                 template.equipment.selected.push(e.getAttribute('original-item'));
                             }
                         });
- 
+
                         genericPopupQuerySelectorAll('#halo_selector a.halo_item').forEach((e) => {
                             if (e.getAttribute('item-selected') == 1) {
                                 template.halo.selected.push(e.getAttribute('original-item'));
@@ -7328,7 +7209,7 @@ function gudaq(){
                                 template.halo.excluded.push(e.getAttribute('original-item'));
                             }
                         });
- 
+
                         let amchk = genericPopupQuerySelectorAll('#amulet-div input.amulet-config');
                         for (var amStyle = amchk.length - 1; amStyle >= 0 && !amchk[amStyle].checked; amStyle--);
                         template.amulet.selected = amStyle;
@@ -7337,14 +7218,14 @@ function gudaq(){
                                 template.amulet.selectedGroups.push(e.getAttribute('original-item'));
                             }
                         });
- 
+
                         genericPopupQuerySelectorAll('#misc-div table.misc-config input').forEach((e) => {
                             template.miscellaneous[e.getAttribute('original-item')] = e.value;
                         });
- 
+
                         return template;
                     }
- 
+
                     function applyTemplate(template) {
                         mon_selector.querySelectorAll('.mon-row').forEach((tr) => {
                             let mon = template.monster[tr.getAttribute('original-item')];
@@ -7360,13 +7241,13 @@ function gudaq(){
                             e.value = template.monster.batchData[i];
                         });
                         countGenericCheckbox('#mon-div');
- 
+
                         genericPopupQuerySelector('#role-useWishpool').checked = template.role.useWishpool;
                         genericPopupQuerySelectorAll('#role-info input').forEach((e, i) => {
                             e.value = template.role.points[i];
                         });
                         rolePtsChanged();
- 
+
                         let eqs = template.equipment.selected.slice();
                         genericPopupQuerySelectorAll('table.equip-list input.equip-checkbox.equip-item').forEach((e) => {
                             let i = eqs.indexOf(e.getAttribute('original-item'));
@@ -7378,7 +7259,7 @@ function gudaq(){
                         countGenericCheckbox('#equips2-div');
                         countGenericCheckbox('#equips3-div');
                         countGenericCheckbox('#equips4-div');
- 
+
                         let hp = 0;
                         let hs = 0;
                         genericPopupQuerySelectorAll('#halo_selector a.halo_item').forEach((e) => {
@@ -7397,7 +7278,7 @@ function gudaq(){
                         haloSlots.innerText = hs;
                         haloPoints.style.color = (hp <= haloMax ? '#0000c0' : 'red');
                         haloSlots.style.color = (hs <= roleHs ? '#0000c0' : 'red');
- 
+
                         genericPopupQuerySelectorAll('#halo_selector a.halo_item_exclude').forEach((e) => {
                             if (template.halo.excluded.indexOf(e.getAttribute('original-item')) >= 0) {
                                 e.setAttribute('item-selected', 1);
@@ -7408,7 +7289,7 @@ function gudaq(){
                                 e.style.backgroundColor = g_genericPopupBackgroundColor;
                             }
                         });
- 
+
                         genericPopupQuerySelectorAll('#amulet-div input.amulet-config').forEach((e, i) => {
                             e.checked = (template.amulet.selected == i);
                         });
@@ -7426,12 +7307,12 @@ function gudaq(){
                         });
                         amuletCount.innerText = ac + ' / ' + bagCells;
                         amuletCount.style.color = (ac <= bagCells ? 'blue' : 'red');
- 
+
                         genericPopupQuerySelectorAll('#misc-div table.misc-config input').forEach((e) => {
                             e.value = template.miscellaneous[e.getAttribute('original-item')];
                         });
                     }
- 
+
                     function collectConfigData() {
                         let cfg = [ haloMax,
                                     '',
@@ -7439,7 +7320,7 @@ function gudaq(){
                         if (genericPopupQuerySelector('#role-useWishpool').checked) {
                             cfg.push('WISH ' + wishpool.slice(-14).join(' '));
                         }
- 
+
                         let amchk = genericPopupQuerySelectorAll('#amulet-div input.amulet-config');
                         if (amchk[1].checked) {
                             let am = amchk[1].getAttribute('original-item');
@@ -7459,14 +7340,14 @@ function gudaq(){
                                 cfg.push(`AMULET ${ag.formatBuffShortMark(' ', ' ', false)} ENDAMULET`);
                             }
                         }
- 
+
                         let pts = [];
                         let ptsMax = [ 'MAXATTR' ];
                         genericPopupQuerySelectorAll('#role-info input').forEach((e, i) => {
                             (i < 6 ? pts : ptsMax).push(e.value);
                         });
                         cfg.push(pts.join(' '));
- 
+
                         let eq = [ [], [], [], [] ];
                         genericPopupQuerySelectorAll('table.equip-list').forEach((t, ti) => {
                             let equ = t.querySelectorAll('input.equip-checkbox.equip-item');
@@ -7497,7 +7378,7 @@ function gudaq(){
                                 eqsel.push(e);
                             }
                         });
- 
+
                         let halo = [];
                         $('.halo_item').each(function(i, e) {
                             if ($(e).attr('item-selected') == 1) {
@@ -7506,12 +7387,12 @@ function gudaq(){
                         });
                         cfg.push(halo.length > 0 ? halo.length + ' ' + halo.join(' ') : '0');
                         cfg.push('');
- 
+
                         if (eqsel.length > 0) {
                             cfg.push('GEAR\n    ' + eqsel.flat().join('\n    ') + '\nENDGEAR');
                             cfg.push('');
                         }
- 
+
                         let monText = genericPopupQuerySelectorAll('#mon-div input.mon-batch-data');
                         let startProg = parseInt(monText[0].value);
                         let progStep = parseInt(monText[1].value);
@@ -7561,7 +7442,7 @@ function gudaq(){
                             cfg.push('ENDNPC');
                             cfg.push('');
                         }
- 
+
                         genericPopupQuerySelectorAll('#misc-div table.misc-config input').forEach((e) => {
                             cfg.push(e.getAttribute('original-item') + ' ' + e.value);
                         });
@@ -7569,7 +7450,7 @@ function gudaq(){
                         cfg.push('PCWEIGHT 1 1');
                         cfg.push('DEFENDER 0');
                         cfg.push('');
- 
+
                         cfg.push(ptsMax.join(' '));
                         halo = [];
                         $('.halo_item_exclude').each(function(i, e) {
@@ -7580,15 +7461,15 @@ function gudaq(){
                         if (halo.length > 0) {
                             cfg.push('AURAFILTER ' + halo.join('_'));
                         }
- 
+
                         return cfg;
                     }
- 
+
                     let timer = setInterval(() => {
                         if (asyncOperations == 0) {
                             clearInterval(timer);
                             httpRequestClearAll();
- 
+
                             bagCells += parseInt(wishpool[0] ?? 0);
                             if (userInfo?.[4]?.length > 0) {
                                 bagCells += 2;
@@ -7598,14 +7479,14 @@ function gudaq(){
                             }
                             amuletCount.innerText = '0 / ' + bagCells;
                             amuletCount.style.color = 'blue';
- 
+
                             let udata = loadUserConfigData();
                             let template = udata.calculatorTemplatePVE?.[role.id];
- 
+
                             function loadTemplate(hideTips) {
                                 if (template != null) {
                                     applyTemplate(template);
- 
+
                                     btnLoadTemplate.disabled = '';
                                     btnDeleteTemplate.disabled = '';
                                 }
@@ -7617,33 +7498,33 @@ function gudaq(){
                                     genericPopupShowInformationTips(template != null ? '模板已加载' : '模板加载失败');
                                 }
                             }
- 
+
                             function saveTemplate() {
                                 udata.calculatorTemplatePVE ??= {};
                                 udata.calculatorTemplatePVE[role.id] = template = generateTemplate();
                                 saveUserConfigData(udata);
- 
+
                                 btnLoadTemplate.disabled = '';
                                 btnDeleteTemplate.disabled = '';
                                 genericPopupShowInformationTips('模板已保存');
                             }
- 
+
                             function deleteTemplate() {
                                 delete udata.calculatorTemplatePVE[role.id];
                                 saveUserConfigData(udata);
- 
+
                                 template = null;
                                 btnLoadTemplate.disabled = 'disabled';
                                 btnDeleteTemplate.disabled = 'disabled';
                                 genericPopupShowInformationTips('模板已删除');
                             }
- 
+
                             genericPopupQuerySelectorAll('input.generic-checkbox').forEach((e) => { e.onchange = genericCheckboxStateChange; });
                             function genericCheckboxStateChange(e) {
                                 let countSpan = e.target.parentNode.parentNode.parentNode.parentNode.firstElementChild.firstElementChild;
                                 countSpan.innerText = parseInt(countSpan.innerText) + (e.target.checked ? 1 : -1);
                             }
- 
+
                             genericPopupQuerySelector('#copy-to-clipboard').onclick = (() => {
                                 genericPopupQuerySelector('#export-result').select();
                                 if (document.execCommand('copy')) {
@@ -7653,7 +7534,7 @@ function gudaq(){
                                     genericPopupShowInformationTips('复制失败，请进行手工复制（CTRL+A, CTRL+C）');
                                 }
                             });
- 
+
                             genericPopupQuerySelector('#do-export').onclick =
                                 genericPopupQuerySelector('#save-template-do-export').onclick = (
                                 (e) => {
@@ -7667,40 +7548,50 @@ function gudaq(){
                                         }
                                     }
                                 });
- 
+
                             genericPopupSetContentSize(Math.min(4000, Math.max(window.innerHeight - 400, 400)),
                                                        Math.min(1000, Math.max(window.innerWidth - 200, 600)),
                                                        true);
- 
+
                             genericPopupAddButton('保存模板', 0, saveTemplate, true);
                             let btnLoadTemplate = genericPopupAddButton('加载模板', 0, loadTemplate, true);
                             let btnDeleteTemplate = genericPopupAddButton('删除模板', 0, deleteTemplate, true);
                             genericPopupAddCloseButton(80);
- 
+
                             loadTemplate(true);
- 
+
                             genericPopupCloseProgressMessage();
                             genericPopupShowModal(true);
                         }
                     }, 200);
                 }
- 
+
                 function refreshBindingSelector(roleId) {
                     let bindingsolutionDiv = document.getElementById(g_bindingSolutionId);
                     let bindingList = document.getElementById(g_bindingListSelectorId);
- 
-                    bindingList.innerHTML = '';
- 
+
                     let udata = loadUserConfigData();
                     let defaultSolution = false;
-                    let bindInfo = readBindingSolutionList(roleId);
-                    if (bindInfo?.length > 0) {
-                        bindInfo[0].bindings.forEach((item) => {
+                    let bindings = null;
+                    let bind_info = udata.dataBind[roleId];
+                    if (bind_info != null) {
+                        bindings = bind_info.split(BINDING_SEPARATOR).sort((a, b) => {
+                            a = a.split(BINDING_NAME_SEPARATOR);
+                            b = b.split(BINDING_NAME_SEPARATOR);
+                            a = a.length > 1 ? a[0] : BINDING_NAME_DEFAULT;
+                            b = b.length > 1 ? b[0] : BINDING_NAME_DEFAULT;
+                            return a < b ? -1 : 1;
+                        });
+                    }
+                    bindingList.innerHTML = '';
+                    if (bindings?.length > 0) {
+                        bindings.forEach((item) => {
+                            let elements = item.split(BINDING_NAME_SEPARATOR);
                             let op = document.createElement('option');
-                            op.value = roleId + BINDING_NAME_SEPARATOR + item.binding;
-                            op.innerText = item.name;
+                            op.value = roleId + BINDING_NAME_SEPARATOR + elements[elements.length - 1];
+                            op.innerText = (elements.length > 1 ? elements[0] : BINDING_NAME_DEFAULT);
                             bindingList.appendChild(op);
-                            if (udata.dataBindDefault[roleId] == item.name) {
+                            if (udata.dataBindDefault[roleId] == op.innerText) {
                                 bindingList.value = op.value;
                                 defaultSolution = true;
                             }
@@ -7710,19 +7601,18 @@ function gudaq(){
                     else {
                         bindingsolutionDiv.style.display = 'none';
                     }
- 
                     if (!defaultSolution && udata.dataBindDefault[roleId] != null) {
                         delete udata.dataBindDefault[roleId];
                         saveUserConfigData(udata);
                     }
                 }
- 
+
                 function addRoleOperationBtn() {
                     let roleId = g_roleMap.get(backpacksDiv.querySelector('div.row > div.col-md-3 > span.text-info.fyg_f24')?.innerText)?.id;
- 
+
                     function toolsLinks(e) {
                         if (e.target.id == g_genCalcCfgPopupLinkId) {
-                            // showCalcConfigGenPopup();
+                            showCalcConfigGenPopup();
                         }
                         else if (e.target.id == g_bindingPopupLinkId) {
                             showBindingPopup();
@@ -7731,7 +7621,7 @@ function gudaq(){
                             equipOnekey();
                         }
                     }
- 
+
                     let bindingAnchor = backpacksDiv.querySelector('div.row > div.col-md-12').parentNode.nextSibling;
                     let toolsContainer = document.createElement('div');
                     toolsContainer.className = 'btn-group';
@@ -7744,18 +7634,17 @@ function gudaq(){
                     toolsContainer.style.color = '#0000c0';
                     toolsContainer.style.backgroundColor = '#ebf2f9';
                     bindingAnchor.parentNode.insertBefore(toolsContainer, bindingAnchor);
- 
+
                     let genCalcCfgLink = document.createElement('span');
                     genCalcCfgLink.setAttribute('class', 'fyg_lh30');
                     genCalcCfgLink.style.width = '25%';
                     genCalcCfgLink.style.textAlign = 'left';
                     genCalcCfgLink.style.display = 'inline-block';
                     genCalcCfgLink.innerHTML =
-                        `<a href="###" style="text-decoration:underline;" id="${g_genCalcCfgPopupLinkId}" disabled>由于特殊原因暂不可用</a>`;
-                        // `<a href="###" style="text-decoration:underline;" id="${g_genCalcCfgPopupLinkId}">生成计算器配置（PVE）</a>`;
+                        `<a href="###" style="text-decoration:underline;" id="${g_genCalcCfgPopupLinkId}">生成计算器配置（PVE）</a>`;
                     genCalcCfgLink.querySelector('#' + g_genCalcCfgPopupLinkId).onclick = toolsLinks;
                     toolsContainer.appendChild(genCalcCfgLink);
- 
+
                     let bindingLink = document.createElement('span');
                     bindingLink.setAttribute('class', 'fyg_lh30');
                     bindingLink.style.width = '25%';
@@ -7765,12 +7654,12 @@ function gudaq(){
                         `<a href="###" style="text-decoration:underline;" id="${g_bindingPopupLinkId}">绑定（装备 光环 护符）</a>`;
                     bindingLink.querySelector('#' + g_bindingPopupLinkId).onclick = toolsLinks;
                     toolsContainer.appendChild(bindingLink);
- 
+
                     let bindingsolutionDiv = document.createElement('div');
                     bindingsolutionDiv.id = g_bindingSolutionId;
                     bindingsolutionDiv.style.display = 'none';
                     bindingsolutionDiv.style.width = '50%';
- 
+
                     let bindingList = document.createElement('select');
                     bindingList.id = g_bindingListSelectorId;
                     bindingList.style.width = '80%';
@@ -7778,7 +7667,7 @@ function gudaq(){
                     bindingList.style.textAlign = 'center';
                     bindingList.style.display = 'inline-block';
                     bindingsolutionDiv.appendChild(bindingList);
- 
+
                     let applyLink = document.createElement('span');
                     applyLink.setAttribute('class', 'fyg_lh30');
                     applyLink.style.width = '20%';
@@ -7788,10 +7677,10 @@ function gudaq(){
                     applyLink.querySelector('#' + g_equipOnekeyLinkId).onclick = toolsLinks;
                     bindingsolutionDiv.appendChild(applyLink);
                     toolsContainer.appendChild(bindingsolutionDiv);
- 
+
                     refreshBindingSelector(roleId);
                 }
- 
+
                 function switchEquipSubtabs() {
                     function enableSwitchEquipSubtabs(enabled) {
                         const maskDivId = 'equip-tab-div';
@@ -7812,11 +7701,11 @@ function gudaq(){
                         maskDiv.style.display = (enabled ? 'none' : 'block');
                     }
                     enableSwitchEquipSubtabs(false);
- 
+
                     $('.pop_main').hide();
                     calcBtn.disabled = 'disabled';
                     calcBtn.onclick = (() => {});
- 
+
                     let index = -1;
                     document.querySelectorAll('ul.nav.nav-secondary.nav-justified > li').forEach((e, i) => {
                         if (e.className == 'active') {
@@ -7847,7 +7736,7 @@ function gudaq(){
                                               color:purple;border:1px solid grey;">全部装备：</div>
                                          ${new Array(el).fill('<div class="pop_text"></div>').join('')}<hr></div>
                                          <a href="###">× 折叠 ×</a></div>`;
- 
+
                                 $('.pop_main a').click(() => {
                                     $('.pop_main').hide()
                                 })
@@ -7891,16 +7780,16 @@ function gudaq(){
                     }
                     enableSwitchEquipSubtabs(true);
                 }
- 
+
                 let backpacksObserver = new MutationObserver(() => {
                     backpacksObserver.disconnect();
                     switchEquipSubtabs();
                     backpacksObserver.observe(backpacksDiv, { childList : true , characterData : true });
                 });
- 
+
                 switchEquipSubtabs();
                 backpacksObserver.observe(backpacksDiv, { childList : true , characterData : true });
- 
+
                 equipmentNodesToInfoArray(cardingDiv.querySelectorAll(cardingObjectsQueryString));
                 new MutationObserver(() => {
                     equipmentNodesToInfoArray(cardingDiv.querySelectorAll(cardingObjectsQueryString));
@@ -7910,7 +7799,7 @@ function gudaq(){
     }
     else if (window.location.pathname == g_guguzhenBeach) {
         genericPopupInitialize();
- 
+
         let beachConfigDiv = document.createElement('div');
         beachConfigDiv.style.padding = '5px 15px';
         beachConfigDiv.style.borderBottom = '1px solid #d0d0d0';
@@ -7924,7 +7813,7 @@ function gudaq(){
                <input type="checkbox" id="beach_BG" style="margin-right:5px;"/>
                <label for="beach_BG" style="cursor:pointer;">使用深色背景</label>
              </div></div>`;
- 
+
         let equipRefreshRequired = true;
         let btnAnalyze = beachConfigDiv.querySelector('#analyze-indicator');
         btnAnalyze.onclick = (() => {
@@ -7934,7 +7823,7 @@ function gudaq(){
                 analyzeBeachEquips();
             }
         });
- 
+
         let forceExpand = setupConfigCheckbox(
             beachConfigDiv.querySelector('#forceExpand'),
             g_beachForceExpandStorageKey,
@@ -7945,20 +7834,20 @@ function gudaq(){
                 }
             },
             null);
- 
+
         let beach_BG = setupConfigCheckbox(
             beachConfigDiv.querySelector('#beach_BG'),
             g_beachBGStorageKey,
             (checked) => { changeBeachStyle('beach_copy', beach_BG = checked); },
             null);
- 
+
         beachConfigDiv.querySelector('#toAmuletSettings').onclick = (() => {
             modifyConfig(['minBeachEquipLevelToAmulet', 'minBeachAmuletPointsToStore', 'clearBeachAfterBatchToAmulet'], '批量转护符设置');
         });
- 
+
         beachConfigDiv.querySelector('#siftSettings').onclick = (() => {
             loadTheme();
- 
+
             let fixedContent =
                 '<div style="font-size:15px;color:#0000c0;padding:20px 0px 10px;"><b><ul>' +
                 '<li>被勾选的装备不会被展开，不会产生与已有装备的对比列表，传奇、史诗及有神秘属性的装备例外</li>' +
@@ -7988,31 +7877,31 @@ function gudaq(){
                  <tr class="alt"><th class="equip-th-equip"><input type="checkbox" id="equip-name-check" />
                  <label class= "equip-checkbox-label" for="equip-name-check">装备名称</label></th>
                  <th>装备属性</th><th /><th /><th /></tr></table><div>`;
- 
+
             genericPopupSetFixedContent(fixedContent);
             genericPopupSetContent('沙滩装备筛选设置', mainContent);
- 
+
             genericPopupQuerySelector('#equip-name-check').onchange = ((e) => {
                 let eqchecks = equipTable.querySelectorAll('input.sift-settings-checkbox');
                 for (let i = 0; i < eqchecks.length; i += 5) {
                     eqchecks[i].checked = e.target.checked;
                 }
             });
- 
+
             let udata = loadUserConfigData();
             if (udata.dataBeachSift == null) {
                 udata.dataBeachSift = {};
                 saveUserConfigData(udata);
             }
- 
+
             let ignoreEquipQuality = genericPopupQuerySelector('#ignoreEquipQuality');
             let ignoreMysEquip = genericPopupQuerySelector('#ignoreMysEquip');
             let ignoreEquipLevel = genericPopupQuerySelector('#ignoreEquipLevel');
- 
+
             ignoreEquipQuality.checked = (udata.dataBeachSift.ignoreEquipQuality ?? false);
             ignoreMysEquip.checked = (udata.dataBeachSift.ignoreMysEquip ?? false);
             ignoreEquipLevel.value = (udata.dataBeachSift.ignoreEquipLevel ?? "0");
- 
+
             let equipTable = genericPopupQuerySelector('#equip-table');
             let equipTypeColor = [ '#000080', '#008000', '#800080', '#008080' ];
             g_equipments.forEach((equip) => {
@@ -8034,7 +7923,7 @@ function gudaq(){
                          <label class="equip-checkbox-label" for="${equipId}">${equip.alias}</label></td>${attrHTML}`;
                 equipTable.appendChild(tr);
             });
- 
+
             let eqchecks = equipTable.querySelectorAll('input.sift-settings-checkbox');
             for (let i = 0; i < eqchecks.length; i += 5) {
                 let abbr = eqchecks[i].parentNode.parentNode.getAttribute('equip-abbr');
@@ -8045,7 +7934,7 @@ function gudaq(){
                     }
                 }
             }
- 
+
             genericPopupAddButton(
                 '确认',
                 80,
@@ -8060,25 +7949,25 @@ function gudaq(){
                         row.querySelectorAll('input.sift-settings-checkbox').forEach((col) => { checks.push(col.checked); });
                         settings[row.getAttribute('equip-abbr')] = checks.join(',');
                     });
- 
+
                     let udata = loadUserConfigData();
                     udata.dataBeachSift = settings;
                     saveUserConfigData(udata);
- 
+
                     window.location.reload();
                 }),
                 false);
             genericPopupAddCloseButton(80);
- 
+
             genericPopupSetContentSize(Math.min(g_equipments.length * 31 + 130, Math.max(window.innerHeight - 400, 600)),
                                        Math.min(750, Math.max(window.innerWidth - 100, 600)),
                                        true);
             genericPopupShowModal(true);
         });
- 
+
         let beach = document.getElementById('beachall');
         beach.parentNode.insertBefore(beachConfigDiv, beach);
- 
+
         let batbtns = document.querySelector('div.col-md-12 > div.panel > div.panel-heading > div.btn-group > button.btn.btn-danger');
         let toAmuletBtn = document.createElement('button');
         toAmuletBtn.className = batbtns.className;
@@ -8087,15 +7976,15 @@ function gudaq(){
         toAmuletBtn.onclick = equipToAmulet;
         toAmuletBtn.disabled = 'disabled';
         batbtns.parentNode.appendChild(toAmuletBtn);
- 
+
         function equipToAmulet() {
             loadTheme();
             readConfig();
- 
+
             function divHeightAdjustment(div) {
                 div.style.height = (div.parentNode.offsetHeight - div.offsetTop - 3) + 'px';
             }
- 
+
             function moveAmuletItem(e) {
                 let li = e.target;
                 if (li.tagName == 'LI') {
@@ -8105,11 +7994,11 @@ function gudaq(){
                     container.insertBefore(li, li0);
                 }
             }
- 
+
             function refreshStore(fnPostProcess) {
                 // read store
                 stbp();
- 
+
                 let timer = setInterval(() => {
                     if (asyncOperations == 0) {
                         clearInterval(timer);
@@ -8119,7 +8008,7 @@ function gudaq(){
                     }
                 }, 200);
             }
- 
+
             function queryObjects(storeAmulets, beach, beachEquipLevel) {
                 freeCell = parseInt(document.querySelector('#wares > p.fyg_lh40.fyg_tc.text-gray')?.innerText?.match(/\d+/)?.[0]);
                 if (isNaN(freeCell)) {
@@ -8142,7 +8031,7 @@ function gudaq(){
                     }
                 }
             }
- 
+
             function pirlEquip() {
                 genericPopupShowInformationTips('熔炼装备...', 0);
                 let ids = [];
@@ -8152,7 +8041,7 @@ function gudaq(){
                 pirlCount = ids.length;
                 beginPirlObjects(false, ids, refreshStore, prepareNewAmulets);
             }
- 
+
             function prepareNewAmulets() {
                 let amulets = [];
                 queryObjects(amulets);
@@ -8187,11 +8076,11 @@ function gudaq(){
                 btnContinue.disabled = '';
                 btnCloseOnBatch.disabled = (originalBeachEquips.length > 0 ? '' : 'disabled');
             }
- 
+
             function processNewAmulets() {
                 btnContinue.disabled = 'disabled';
                 btnCloseOnBatch.disabled = 'disabled';
- 
+
                 if (pirlCount > 0) {
                     let indices = [];
                     for (let li of amuletToDestroyList.children) {
@@ -8234,7 +8123,7 @@ function gudaq(){
                     postProcess(15);
                 }
             }
- 
+
             function postProcess(closeCountDown) {
                 let closed = false;
                 function closeProcess() {
@@ -8259,7 +8148,7 @@ function gudaq(){
                         }, 200);
                     }
                 }
- 
+
                 let timer = null;
                 if (closeCountDown > 0) {
                     genericPopupQuerySelector('#fixed-tips').innerText = `操作完成，共获得 ${amuletsCollected} 个护符， ${coresCollected} 个果核`;
@@ -8278,7 +8167,7 @@ function gudaq(){
                     closeProcess();
                 }
             }
- 
+
             const objectTypeColor = [ '#e0fff0', '#ffe0ff', '#fff0e0', '#d0f0ff' ];
             let minBeachAmuletPointsToStore = [ 1, 1, 1 ];
             let cfg = g_configMap.get('minBeachAmuletPointsToStore')?.value?.split(',');
@@ -8289,7 +8178,7 @@ function gudaq(){
                     }
                 });
             }
- 
+
             let originalBeachEquips = [];
             let originalStoreAmulets = [];
             let freeCell = 0;
@@ -8297,7 +8186,7 @@ function gudaq(){
             let amuletsCollected = 0;
             let coresCollected = 0;
             let newAmulets = null;
- 
+
             let clearBeachAfterBatchToAmulet = (g_configMap.get('clearBeachAfterBatchToAmulet')?.value ?? 0);
             let minBeachEquipLevelToAmulet = (g_configMap.get('minBeachEquipLevelToAmulet')?.value ?? '1,1,1').split(',');
             for (let i = 0; i < 3; i++) {
@@ -8315,7 +8204,7 @@ function gudaq(){
                 alert('仓库已满！');
                 return;
             }
- 
+
             let fixedContent =
                 `<div style="width:100%;padding:10px 0px 0px 0px;font-size:16px;color:blue;"><b>
                    <span id="fixed-tips">左键双击或上下文菜单键单击条目以进行分类间移动</span><br>
@@ -8332,16 +8221,16 @@ function gudaq(){
                     '<div style="display:block;width:100%;padding:5px;border-bottom:2px groove #d0d0d0;margin-bottom:10px;">转换果核</div>' +
                     '<div style="position:absolute;display:block;height:1px;width:100%;overflow:scroll;">' +
                       '<ul id="amulet_to_destroy_list" style="cursor:pointer;"></ul></div></div></div>';
- 
+
             genericPopupSetFixedContent(fixedContent);
             genericPopupSetContent('批量护符转换', mainContent);
- 
+
             let amuletToStoreList = genericPopupQuerySelector('#amulet_to_store_list');
             let amuletToDestroyList = genericPopupQuerySelector('#amulet_to_destroy_list');
             amuletToStoreList.parentNode.oncontextmenu = amuletToDestroyList.parentNode.oncontextmenu = (() => false);
             amuletToStoreList.oncontextmenu = amuletToDestroyList.oncontextmenu = moveAmuletItem;
             amuletToStoreList.ondblclick = amuletToDestroyList.ondblclick = moveAmuletItem;
- 
+
             genericPopupShowInformationTips('这会分批将沙滩可熔炼装备转化为护符，请点击“继续”开始', 0);
             let btnContinue = genericPopupAddButton(`继续 （剩余 ${originalBeachEquips.length} 件装备 / ${freeCell} 个空位）`,
                                                     0, processNewAmulets, true);
@@ -8351,18 +8240,18 @@ function gudaq(){
                 processNewAmulets();
             }), false);
             btnCloseOnBatch.disabled = 'disabled';
- 
+
             genericPopupAddButton('关闭（不清理沙滩）', 0, (() => { window.location.reload(); }), false);
- 
+
             genericPopupSetContentSize(400, 700, false);
- 
+
             analyzingEquipment = true;
             genericPopupShowModal(false);
- 
+
             divHeightAdjustment(amuletToStoreList.parentNode);
             divHeightAdjustment(amuletToDestroyList.parentNode);
         }
- 
+
         let asyncOperations = 1;
         let equipExchanged = false;
         let cardingNodes, equipNodes, equipInfos = [];
@@ -8379,13 +8268,13 @@ function gudaq(){
                         asyncOperations = 0;
                     }
                 });
- 
+
                 cardingNodes = Array.from(roleInfo[2]).sort(objectNodeComparer);
                 if (--asyncOperations < 0) {
                     asyncOperations = 0;
                 }
             });
- 
+
         (new MutationObserver((mlist) => {
             if (!(mlist[0].addedNodes[0]?.className?.indexOf('popover') >= 0 ||
                   mlist[0].removedNodes[0]?.className?.indexOf('popover') >= 0)) {
@@ -8410,47 +8299,47 @@ function gudaq(){
                     }
                     return;
                 }
- 
+
                 equipRefreshRequired = (oldInfos.length != newInfos.length);
- 
+
                 if (oldNodes.length == newNodes.length) {
                     analyzeBeachEquips();
                 }
             }
         })).observe(document.getElementById('wares'), { childList : true });
- 
+
         let beachTimer = setInterval(() => {
             if (asyncOperations == 0 &&
                 (document.getElementById('beachall')?.firstChild?.nodeType ?? Node.ELEMENT_NODE) == Node.ELEMENT_NODE &&
                 (document.getElementById('wares')?.firstChild?.nodeType ?? Node.ELEMENT_NODE) == Node.ELEMENT_NODE) {
- 
+
                 clearInterval(beachTimer);
                 loadTheme();
- 
+
                 analyzeBeachEquips();
                 (new MutationObserver(() => { analyzeBeachEquips(); })).observe(document.getElementById('beachall'), { childList : true });
- 
+
                 toAmuletBtn.disabled = '';
             }
         }, 200);
- 
+
         var analyzingEquipment = false;
         function analyzeBeachEquips() {
             if (!analyzingEquipment) {
                 analyzingEquipment = true;
                 let count = (document.getElementById('beachall')?.children?.length ?? 0);
                 btnAnalyze.innerText = `分析中...（${count}）`;
- 
+
                 let equipTimer = setInterval(() => {
                     if (asyncOperations == 0) {
                         clearInterval(equipTimer);
- 
+
                         if (equipRefreshRequired) {
                             equipNodes = cardingNodes.concat(Array.from(document.querySelectorAll('#wares button.btn.fyg_mp3')))
                                                      .sort(objectNodeComparer);
                             equipInfos = equipmentNodesToInfoArray(equipNodes);
                             equipRefreshRequired = false;
- 
+
                             // debug only
                             equipInfos.forEach((e, i) => {
                                 if (equipmentVerify(equipNodes[i], e) != 0) {
@@ -8458,18 +8347,18 @@ function gudaq(){
                                 }
                             });
                         }
- 
+
                         expandEquipment();
- 
+
                         btnAnalyze.innerText = `重新分析（${count}）`;
                         btnAnalyze.disabled = (document.getElementById('beachall')?.children?.length > 0 ? '' : 'disabled');
- 
+
                         analyzingEquipment = false;
                     }
                 }, 200);
             }
         }
- 
+
         function expandEquipment() {
             let beach_copy = document.getElementById('beach_copy');
             if (beach_copy == null) {
@@ -8479,11 +8368,11 @@ function gudaq(){
                 beach_copy.id = 'beach_copy';
                 beach_copy.style.backgroundColor = beach_BG ? 'black' : 'white';
                 beachall.parentNode.insertBefore(beach_copy, beachall);
- 
+
                 (new MutationObserver((mList) => {
                     if (!analyzingEquipment && mList?.length == 1 && mList[0].type == 'childList' &&
                         mList[0].addedNodes?.length == 1 && !(mList[0].removedNodes?.length > 0)) {
- 
+
                         let node = mList[0].addedNodes[0];
                         if (node.hasAttribute('role')) {
                             node.remove();
@@ -8502,20 +8391,20 @@ function gudaq(){
                 })).observe(beach_copy, { childList : true });
             }
             copyBeach(beach_copy);
- 
+
             let udata = loadUserConfigData();
             if (udata.dataBeachSift == null) {
                 udata.dataBeachSift = {};
                 saveUserConfigData(udata);
             }
- 
+
             let ignoreEquipQuality = (udata.dataBeachSift.ignoreEquipQuality ?? false);
             let ignoreMysEquip = (udata.dataBeachSift.ignoreMysEquip ?? false);
             let ignoreEquipLevel = parseInt(udata.dataBeachSift.ignoreEquipLevel ?? '0');
             if (isNaN(ignoreEquipLevel)) {
                 ignoreEquipLevel = 0;
             }
- 
+
             let settings = {};
             for (let abbr in udata.dataBeachSift) {
                 if (g_equipMap.has(abbr)) {
@@ -8527,7 +8416,7 @@ function gudaq(){
                     }
                 }
             }
- 
+
             const defaultSetting = [ false, false, false, false, false ];
             beach_copy.querySelectorAll('button.btn.fyg_mp3').forEach((btn) => {
                 let e = equipmentInfoParseNode(btn);
@@ -8546,7 +8435,7 @@ function gudaq(){
                                 if (equipInfos[j][0] == e[0] &&
                                     !(ignoreMysEquip && equipInfos[j][8] == 1) &&
                                     (stLv = parseInt(equipInfos[j][1])) >= ignoreEquipLevel) {
- 
+
                                     isFind = true;
                                     let e1 = [ parseInt(e[1]), parseInt(e[4]), parseInt(e[5]), parseInt(e[6]), parseInt(e[7]) ];
                                     let e2 = [ stLv, parseInt(equipInfos[j][4]), parseInt(equipInfos[j][5]),
@@ -8590,7 +8479,7 @@ function gudaq(){
                         btn0.setAttribute('data-placement', 'bottom');
                         btn0.setAttribute('data-html', 'true');
                         btn0.setAttribute('onclick', btn.getAttribute('onclick'));
- 
+
                         let popover = document.createElement('div');
                         popover.innerHTML =
                             `<style> .popover { max-width:100%; }
@@ -8615,7 +8504,7 @@ function gudaq(){
                                         'max-width:210px;padding:3px;white-space:pre-line;word-break:break-all;';
                                 }
                                 popover.insertBefore(btn1, popover.firstElementChild);
- 
+
                                 // debug only
                                 if (equipmentVerify(equipNodes[i], eq) != 0) {
                                     btn1.style.border = '5px solid #ff00ff';
@@ -8637,7 +8526,7 @@ function gudaq(){
                     }
                 }
             });
- 
+
             $(function() {
                 $('#beach_copy .btn[data-toggle="popover"]').popover();
             });
@@ -8647,15 +8536,15 @@ function gudaq(){
                 'white-space': 'pre-line',
                 'word-break': 'break-all'
             });
- 
+
             changeBeachStyle('beach_copy', beach_BG);
- 
+
             function copyBeach(beach_copy) {
                 beach_copy.innerHTML = '';
                 Array.from(document.getElementById('beachall').children).sort(sortBeach).forEach((node) => {
                     beach_copy.appendChild(node.cloneNode(true));
                 });
- 
+
                 function sortBeach(a, b) {
                     let delta = objectGetLevel(a) - objectGetLevel(b);
                     if (delta == 0) {
@@ -8667,7 +8556,7 @@ function gudaq(){
                 }
             }
         }
- 
+
         function changeBeachStyle(container, bg) {
             $(`#${container}`).css({
                 'background-color': bg ? 'black' : 'white'
@@ -8691,14 +8580,14 @@ function gudaq(){
                 'color': bg ? 'black' : 'white'
             });
         }
- 
+
         document.body.style.paddingBottom = '1000px';
     }
     else if (window.location.pathname == g_guguzhenPK) {
         let timer = setInterval(() => {
             if (document.querySelector('#pklist')?.firstElementChild != null) {
                 clearInterval(timer);
- 
+
                 let pkConfigDiv = document.createElement('div');
                 pkConfigDiv.className = 'row';
                 pkConfigDiv.innerHTML =
@@ -8711,7 +8600,7 @@ function gudaq(){
                           style="margin-top:2px;font-size:15px;text-decoration:underline;float:left;">更新列表</a>
                        <div style="padding-top:1px;margin-left:10px;margin-right:10px;float:left;">
                          <select id="bindingSolutions" style="width:180px;font-size:15px;padding:2px 0px;text-align:center;"></select></div>
-                       <a href="###" id="switchSolutionLink"
+                       <a href="###" id="switchSolution"
                           style="display:none;margin-top:2px;font-size:15px;text-decoration:underline;float:left;">应用方案</a></b></div>
                      <div style="margin-top:3px;text-align:right;float:right;">
                        <input type="checkbox" id="showSolutionPanelCheckbox" />
@@ -8722,61 +8611,67 @@ function gudaq(){
                        <label for="keepPkRecordCheckbox" style="margin-left:5px;cursor:pointer;">暂时保持战斗记录</label>
                      </div></div></div>`;
                 let pkAddinPanel = pkConfigDiv.querySelector('#pk-addin-panel');
- 
+
                 let refreshSolutionList = pkConfigDiv.querySelector('#refreshSolutionList');
                 refreshSolutionList.onclick = (() => { refreshBindingSolutionList(); });
- 
+
                 let bindingSolutions = pkConfigDiv.querySelector('#bindingSolutions');
                 function refreshBindingSolutionList() {
                     bindingSolutions.innerHTML = '';
-                    readBindingSolutionList()?.forEach((role) => {
-                        role.bindings.forEach((bind) => {
-                            let op = document.createElement('option');
-                            op.value = role.role.id.toString() + BINDING_NAME_SEPARATOR + bind.binding;
-                            op.innerText = role.role.name + ' : ' + bind.name;
-                            bindingSolutions.appendChild(op);
+                    let udata = loadUserConfigData();
+                    for (let role in udata.dataBind) {
+                        udata.dataBind[role].split(BINDING_SEPARATOR).forEach((s) => {
+                            let e = s.split(BINDING_NAME_SEPARATOR);
+                            if (e.length == 2) {
+                                let op = document.createElement('option');
+                                op.value = role + BINDING_NAME_SEPARATOR + e[1];
+                                op.innerText = g_roleMap.get(role).name + ' : ' + e[0];
+                                bindingSolutions.appendChild(op);
+                            }
                         });
-                    });
-                    switchSolutionLink.style.display = (bindingSolutions.options.length > 0 ? 'inline-block' : 'none');
+                    }
+                    switchSolution.style.display = (bindingSolutions.options.length > 0 ? 'inline-block' : 'none');
                 }
- 
-                let switchSolutionLink = pkConfigDiv.querySelector('#switchSolutionLink');
-                switchSolutionLink.onclick = (() => {
-                    switchSolution(bindingSolutions.value);
+
+                let switchSolution = pkConfigDiv.querySelector('#switchSolution');
+                switchSolution.onclick = (() => {
+                    genericPopupInitialize();
+                    genericPopupShowProgressMessage('读取中，请稍候...');
+                    switchBindingSolution(bindingSolutions.value);
                 });
                 refreshBindingSolutionList();
- 
+
                 let showSolutionPanel = setupConfigCheckbox(
                     pkConfigDiv.querySelector('#showSolutionPanelCheckbox'),
                     g_showSolutionPanelStorageKey,
                     (checked) => { solutionPanel.style.display = ((showSolutionPanel = checked) ? 'block' : 'none'); },
                     null);
- 
+
                 let solutionPanel = pkConfigDiv.querySelector('#solutionPanel');
                 solutionPanel.style.display = (showSolutionPanel ? 'block' : 'none');
- 
+
                 let indexRally = setupConfigCheckbox(
                     pkConfigDiv.querySelector('#indexRallyCheckbox'),
                     g_indexRallyStorageKey,
                     (checked) => { indexRally = checked; },
                     null);
- 
+
                 let keepPkRecord = setupConfigCheckbox(
                     pkConfigDiv.querySelector('#keepPkRecordCheckbox'),
                     g_keepPkRecordStorageKey,
                     (checked) => { pkRecordDiv.style.display = ((keepPkRecord = checked) ? 'block' : 'none'); },
                     null);
- 
+
                 let pkDiv = document.querySelector('#pk_text');
                 pkDiv.parentNode.insertBefore(pkConfigDiv, pkDiv);
                 $('#solutionPanel').tooltip();
- 
+
                 let pkRecordDiv = document.createElement('div');
                 pkRecordDiv.id = 'pk_record';
                 pkRecordDiv.style.marginTop = '5px';
                 pkRecordDiv.style.display = (keepPkRecord ? 'block' : 'none');
                 pkDiv.parentNode.insertBefore(pkRecordDiv, pkDiv.nextSibling);
- 
+
                 let pkCount = 0;
                 let lastPk = null;
                 let lastPkTime = null;
@@ -8815,13 +8710,13 @@ function gudaq(){
                                 let pkhis = e.currentTarget.nextSibling;
                                 pkhis.style.display = (pkhis.style.display == 'none' ? 'block' : 'none');
                             });
- 
+
                             let pkRec = document.createElement('div');
                             pkRec.style.marginTop = '2px';
                             pkRec.appendChild(pkLabel);
                             pkRec.appendChild(lastPk);
                             pkRecordDiv.insertBefore(pkRec, pkRecordDiv.firstElementChild);
- 
+
                             $(`#${lastPk.id} .btn[data-toggle="tooltip"]`).tooltip();
                             lastPk = null;
                         }
@@ -8849,13 +8744,13 @@ function gudaq(){
                     pkObserver.observe(pkDiv, { characterData : true , childList : true });
                 });
                 pkObserver.observe(pkDiv, { characterData : true , childList : true });
- 
+
                 pkAddinPanel.setAttribute('pk-text-hooked', 'true');
             }
         }, 200);
     }
     else if (window.location.pathname == g_guguzhenWish) {
-/*         //
+        //
         // temporary solution
         //
         function calcWishLimit(max) {
@@ -8874,15 +8769,15 @@ function gudaq(){
                                  true);
             return limits;
         }
- 
+
         const wishRequest = g_httpRequestMap.get('xy_n');
         function tryMakeWish(points, maxRetry) {
             let requestData = wishRequest.data.replace('"+cn+"', '18').replace('"+id+"', points.toString());
- 
+
             genericPopupInitialize();
             genericPopupShowProgressMessage();
             beginMakeWish();
- 
+
             function beginMakeWish() {
                 if (maxRetry > 0) {
                     genericPopupUpdateProgressMessage(`尝试中，请稍候……（${maxRetry--}）`);
@@ -8894,18 +8789,17 @@ function gudaq(){
                                 alert('服务响应无效，停止尝试。');
                                 genericPopupCloseProgressMessage();
                             }
-                            else if (response.responseText.indexOf('请重新许愿') >= 0) {
+                            else if (response.responseText.indexOf('请重新许愿') >= 0){
                                 beginMakeWish();
                             }
                             else {
+                                // addUserMessageSingle('许愿池', response.responseText);
+                                // xy_s();
+                                genericPopupCloseProgressMessage();
                                 $("#mymessagehtml").html(response.responseText);
                                 $("#mymessage").modal('show', 'fit');
                                 $("#xydiv").toggleClass("loading");
-                                addUserMessageSingle('许愿池', response.responseText, true);
-                                genericPopupCloseProgressMessage();
-                                if (response.responseText.indexOf('请明天再来') < 0) {
-                                    xy_s();
-                                }
+                                xy_s();
                             }
                         });
                     return;
@@ -8916,11 +8810,11 @@ function gudaq(){
                 }
             }
         }
- 
+
         let wishLimit = 10;
         let observer = new MutationObserver((mList) => {
             observer.disconnect();
- 
+
             let btns = mList?.[0]?.target?.querySelectorAll('button.btn.btn-lg.btn-block');
             btns?.forEach((btn) => {
                 let pts = btn.getAttribute('onclick')?.match(/xy_n\('18','(\d+)'\)/);
@@ -8937,14 +8831,14 @@ function gudaq(){
                     }
                 }
             });
- 
+
             observer.observe(document.getElementById('mymessage'), { subtree : true , childList : true });
         });
         observer.observe(document.getElementById('mymessage'), { subtree : true , childList : true });
         //
         // temporary solution
         //
- */
+
         function getWishPoints() {
             let text = 'WISH';
             for (let i = 2; i <= 15; i++) {
@@ -8952,7 +8846,7 @@ function gudaq(){
             }
             return text;
         }
- 
+
         let div = document.createElement('div');
         div.className = 'row';
         div.innerHTML =
@@ -8960,13 +8854,13 @@ function gudaq(){
                 '<a href="###" id="copyWishPoints">点击这里复制到剪贴板</a>）</div>' +
                 '<input type="text" class="panel-body" id="calcWishPoints" readonly="true" ' +
                        'style="width:100%;border:none;outline:none;" value="" /></div>';
- 
+
         let calcWishPoints = div.querySelector('#calcWishPoints');
         calcWishPoints.value = getWishPoints();
- 
+
         let xydiv = document.getElementById('xydiv');
         xydiv.parentNode.parentNode.insertBefore(div, xydiv.parentNode.nextSibling);
- 
+
         div.querySelector('#copyWishPoints').onclick = ((e) => {
             calcWishPoints.select();
             if (document.execCommand('copy')) {
@@ -8977,12 +8871,12 @@ function gudaq(){
             }
             setTimeout(() => { e.target.innerText = '点击这里复制到剪贴板'; }, 3000);
         });
- 
+
         (new MutationObserver(() => {
             //
             // temporary solution
             //
-            // wishLimit = calcWishLimit(10);
+            wishLimit = calcWishLimit(10);
             //
             // temporary solution
             //
@@ -8998,12 +8892,12 @@ function gudaq(){
             let gemdDiv = document.querySelector('#gemd');
             if (gemdDiv?.firstElementChild != null) {
                 clearInterval(timer);
- 
+
                 let error = readGemWorkCompletionCondition();
                 if (error > 0) {
                     addUserMessageSingle('宝石工坊完成条件设置', `在完成条件设置中发现 <b style="color:red;">${error}</b> 个错误，将使用默认值替换。`);
                 }
- 
+
                 let unionDiv = document.createElement('div');
                 unionDiv.className = 'row';
                 unionDiv.innerHTML =
@@ -9044,7 +8938,7 @@ function gudaq(){
                                      <b>（已选定 <span id="kpi-count" style="color:#0000c0">0</span> 项）</b>
                                  </div><div style="padding:5px 15px;"><ul id="kpi-list" style="cursor:pointer;"></ul></div>
                              </div></div></div></div>`;
- 
+
                 let lastRefTime = unionDiv.querySelector('#last-refresh-time');
                 let refCountDown = unionDiv.querySelector('#refresh-count-down');
                 let refLongestDelay = unionDiv.querySelector('#refresh-longest-delay');
@@ -9055,20 +8949,20 @@ function gudaq(){
                 let programConfig = unionDiv.querySelectorAll('input.program-config');
                 let kpiList = unionDiv.querySelector('#kpi-list');
                 let kpiCount = unionDiv.querySelector('#kpi-count');
- 
+
                 function refreshTime() {
                     let ts = getTimeStamp();
                     lastRefTime.innerText = ts.date + ' ' + ts.time;
                 }
- 
+
                 conditionConfig.forEach((op) => {
                     op.onchange = (() => { btnApply.disabled = btnRestore.disabled = ''; });
                 });
- 
+
                 programConfig.forEach((op) => {
                     op.onchange = (() => { btnApply.disabled = btnRestore.disabled = ''; });
                 });
- 
+
                 const highlightBackgroundColor = '#80c0f0';
                 g_gemWorks.forEach((item) => {
                     let li = document.createElement('li');
@@ -9092,12 +8986,12 @@ function gudaq(){
                     kpiCount.innerText = count;
                     btnApply.disabled = btnRestore.disabled = '';
                 }
- 
+
                 let currentGemConfig;
                 function saveGemConfig(gemConfig) {
                     localStorage.setItem(g_gemConfigStorageKey, collectConfig(gemConfig));
                     btnApply.disabled = btnRestore.disabled = 'disabled';
- 
+
                     function collectConfig(gemConfig) {
                         if (gemConfig == null) {
                             gemConfig = {
@@ -9116,7 +9010,7 @@ function gudaq(){
                                `${gemConfig.kpiList.length > 0 ? '|' + gemConfig.kpiList.join(',') : ''}`;
                     }
                 }
- 
+
                 function loadGemConfig() {
                     let gemConfig = parseConfig();
                     let error = (gemConfig == null);
@@ -9137,7 +9031,7 @@ function gudaq(){
                     representConfig(gemConfig);
                     btnApply.disabled = btnRestore.disabled = 'disabled';
                     return (currentGemConfig = gemConfig);
- 
+
                     function parseConfig() {
                         let config = localStorage.getItem(g_gemConfigStorageKey)?.split('|');
                         if (config?.length >= 2 && config?.length <= 3) {
@@ -9148,13 +9042,13 @@ function gudaq(){
                             };
                             if (gemConfig.gemConfig >= 0 && gemConfig.gemConfig <= 1 &&
                                 gemConfig.programConfig >= 0 && gemConfig.programConfig <= 1) {
- 
+
                                 return gemConfig;
                             }
                         }
                         return null;
                     }
- 
+
                     function representConfig(gemConfig) {
                         conditionConfig[0].checked = !(conditionConfig[1].checked = (gemConfig.gemConfig == 1));
                         programConfig[0].checked = !(programConfig[1].checked = (gemConfig.programConfig == 1));
@@ -9173,18 +9067,18 @@ function gudaq(){
                         }
                     }
                 }
- 
+
                 refCountDown.onclick = (() => { queueRefresh(0); });
                 refLongestDelay.onclick = (() => { longestDelay = 0; refLongestDelay.innerText = '00:00:00'; });
                 btnApply.onclick = (() => { saveGemConfig(null); shiftConfirm = true; queueRefresh(0); });
                 btnRestore.onclick = (() => { loadGemConfig(); });
                 btnSetup.onclick = (() => { modifyConfig(['gemPollPeriod', 'gemWorkCompletionCondition'], '宝石工坊挂机设置', true); });
- 
+
                 let div = gemdDiv.parentNode.parentNode;
                 div.parentNode.insertBefore(unionDiv, div.nextSibling);
- 
+
                 loadGemConfig();
- 
+
                 let longestDelay = 0;
                 let countDownTimer = null;
                 function queueRefresh(timeSecond) {
@@ -9201,7 +9095,7 @@ function gudaq(){
                         let fireTime = lastTick + (timeSecond * 1000);
                         let interval = fireTime;
                         timerRoutine(false);
- 
+
                         function timerRoutine(setOnly) {
                             let now = Date.now();
                             let delay = (now - lastTick) - interval;
@@ -9209,7 +9103,7 @@ function gudaq(){
                                 longestDelay = delay;
                                 refLongestDelay.innerText = formatTimeSpan(longestDelay - 999);
                             }
- 
+
                             let etr = fireTime - now;
                             if (etr <= 0) {
                                 countDownTimer = null;
@@ -9224,7 +9118,7 @@ function gudaq(){
                                 timerRoutine(true);
                             }
                         }
- 
+
                         function formatTimeSpan(milliseconds) {
                             return `${('0' + Math.trunc((milliseconds += 999) / 3600000)).slice(-2)}:${
                                       ('0' + Math.trunc(milliseconds / 60000) % 60).slice(-2)}:${
@@ -9232,7 +9126,9 @@ function gudaq(){
                         }
                     }
                 }
- 
+
+                const defaultShiftDelay = 50;
+                let shiftDelay = defaultShiftDelay;
                 const changeShiftRequest = g_httpRequestMap.get('cgamd');
                 function changeShift() {
                     function beginChangeShift() {
@@ -9246,10 +9142,22 @@ function gudaq(){
                             () => { queueRefresh(g_gemFailurePollPeriodSecond); },
                             () => { queueRefresh(g_gemFailurePollPeriodSecond); });
                     }
- 
-                    setTimeout(beginChangeShift, 0);
+
+                    if (shiftDelay > 0) {
+                        let timer = setInterval(() => {
+                            if (shiftDelay <= 0) {
+                                clearInterval(timer);
+                                shiftDelay = defaultShiftDelay;
+                                beginChangeShift();
+                            }
+                        }, shiftDelay);
+                    }
+                    else {
+                        shiftDelay = defaultShiftDelay;
+                        beginChangeShift();
+                    }
                 }
- 
+
                 function collectGemWorkStatus(workDivs) {
                     let status = [];
                     g_gemWorks.forEach((template, i) => {
@@ -9261,7 +9169,7 @@ function gudaq(){
                     });
                     return (status.length > 0 ? status.join('，') : '休息日');
                 }
- 
+
                 function calculateGemWork(template, workDiv, timeElapsed) {
                     let etc = [-1, 0];
                     let lines = workDiv.innerHTML.replace('\r', '').replace('\n', '').split('<br>');
@@ -9285,22 +9193,22 @@ function gudaq(){
                     }
                     return etc;
                 }
- 
+
                 let shiftConfirm = true;
                 function updateGemWorks() {
                     refreshTime();
                     queueRefresh(-1);
- 
+
                     let btn = gemdDiv.querySelector('div.col-sm-12 > button.btn.btn-block.btn-lg');
                     if (btn == null) {
                         queueRefresh(g_gemFailurePollPeriodSecond);
                         return;
                     }
- 
+
                     let workTime = btn.innerText?.match(/^已开工(\d+)小时(\d+)分钟/);
                     let timeElapsed = parseInt(workTime?.[1]) * 60 + parseInt(workTime?.[2]);
                     let etr = g_gemMinWorktimeMinute - timeElapsed;
- 
+
                     let checkList = null;
                     let checkCount = 0;
                     if (currentGemConfig.gemConfig == 1) {
@@ -9320,10 +9228,10 @@ function gudaq(){
                             checkCount = (currentGemConfig.programConfig == 0 ? Math.min(1, checkList.length) : checkList.length);
                         }
                     }
- 
+
                     let pollTime = (etr > 0 ? Math.min(etr, gemPollPeriod) : gemPollPeriod);
                     let shift = (checkList != null && checkCount == 0);
- 
+
                     let workDivs = gemdDiv.querySelectorAll('div.col-sm-2 > div.fyg_f14.fyg_lh30');
                     for (let i = workDivs?.length - 1; i >= 0; i--) {
                         let result = '未开工';
@@ -9374,32 +9282,34 @@ function gudaq(){
                     shiftConfirm = false;
                     queueRefresh(pollTime * 60);
                 }
- 
+
                 $(document).ajaxComplete((e, r) => {
                     if (r.status != 200) {
                         queueRefresh(g_gemFailurePollPeriodSecond);
                     }
                 });
- 
+
                 let gemWorksObserver = new MutationObserver(() => {
                     gemWorksObserver.disconnect();
                     updateGemWorks();
                     gemWorksObserver.observe(gemdDiv, { subtree : true , childList : true , characterData : true });
+                    shiftDelay = 0;
                 });
- 
+
                 updateGemWorks();
                 gemWorksObserver.observe(gemdDiv, { subtree : true , childList : true , characterData : true });
+                shiftDelay = 0;
             }
         }, 200);
     }
 })();
- 
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // array utilities
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
- 
+
 // perform a binary search. array must be sorted, but no matter in ascending or descending order.
 // in this manner, you must pass in a proper comparer function for it works properly, aka, if the
 // array was sorted in ascending order, then the comparer(a, b) should return a negative value
@@ -9435,7 +9345,7 @@ function searchElement(array, value, fnComparer) {
     }
     return -1;
 }
- 
+
 // perform a binary insertion. the array and comparer must exactly satisfy as it in the searchElement
 // function. this operation behaves sort-stable, aka, the newer inserting element will be inserted
 // into the position after any existed equivalent elements.
@@ -9459,7 +9369,7 @@ function insertElement(array, value, fnComparer) {
     }
     return -1;
 }
- 
+
 // it's not necessary to have newArray been sorted, but the oldArray must be sorted since we are calling
 // searchElement. if there are some values should be ignored in newArray, the comparer(a, b) should be
 // implemented as return 0 whenever parameter a equals any of values that should be ignored.
