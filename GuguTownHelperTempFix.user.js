@@ -2,7 +2,7 @@
 // @name         咕咕镇数据采集
 // @license      MIT License
 // @namespace    https://greasyfork.org/users/448113
-// @version      2.3.1
+// @version      2.3.1.1
 // @description  咕咕镇数据采集，目前采集已关闭，兼作助手
 // @author       paraii
 // @match        https://www.guguzhen.com/*
