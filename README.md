@@ -3,11 +3,11 @@ English | [Chinese](README_zh.md)
 WebGame GuguTown Helper.    
 This version mainly deals with compatibility issues with ThemePackage Manager Plugin (current) and internationalization works (todo).
 
+## Install This Ver 
+[Github](https://github.com/GuguTown/GuguTownHelper/raw/main/GuguTownHelper.user.js) 
+
 ## Install Original Ver 
 [GreasyFork](https://greasyfork.org/scripts/445173) 
-
-## Install This Ver 
-[Github](https://github.com/HazukiKaguya/GuguTownDAQ_Reforged/raw/main/GuguTownDAQ_Reforged.user.js) 
 
 ## Functions
 [KF](https://kf.miaola.work/read.php?tid=913532&sf=9ac)
