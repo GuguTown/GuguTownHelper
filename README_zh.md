@@ -1,13 +1,13 @@
 [英文](README.md) | 中文  
 # 咕咕镇助手
 气人页游咕咕镇 数据采集&助手，目前采集已关闭。   
-重铸版目前主要着手于去TamperMonkey方法（当前的）和文案的国际化（画饼）。
+此版本去除了TamperMonkey方法，之后会着手文案的国际化（画饼）。
+
+## 安装此版本    
+[Github](https://github.com/GuguTown/GuguTownHelper/raw/main/GuguTownHelper.user.js)
 
 ## 安装原版  
-[GreasyFork](https://greasyfork.org/scripts/445173)
-
-## 安装重铸版    
-[Github](https://github.com/HazukiKaguya/GuguTownDAQ_Reforged/raw/main/GuguTownDAQ_Reforged.user.js)
+[GreasyFork](https://greasyfork.org/scripts/445173) 
 
 ## 功能一览
 [KF](https://kf.miaola.work/read.php?tid=913532&sf=9ac)
