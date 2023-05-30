@@ -5,7 +5,7 @@
 // @name:ja      咕咕镇助手
 // @namespace    https://github.com/HazukiKaguya/GuguTownHelper
 // @homepage     https://github.com/HazukiKaguya/GuguTownHelper
-// @version      2.3.1.1
+// @version      2.3.2
 // @description  WebGame GuguTown Helper
 // @description:zh-CN 气人页游 咕咕镇助手
 // @description:zh-TW 氣人頁遊 咕咕鎮助手
@@ -16,18 +16,13 @@
 // @license      MIT License
 // @downloadURL  https://github.com/HazukiKaguya/GuguTownDAQ_Reforged/raw/main/GuguTownHelper.user.js
 // @updateURL    https://github.com/HazukiKaguya/GuguTownDAQ_Reforged/raw/main/GuguTownHelper.user.js
-// @grant        GM_info
-// @grant        GM_xmlhttpRequest
-// @grant        GM_getValue
-// @grant        GM_setValue
 // ==/UserScript==
 /* eslint-env jquery */
 function gudaq(){
     'use strict'
 
-    const g_isInSandBox = true;
-    const g_version = g_isInSandBox ? GM_info.script.version : '2.2.3 (RP)';
-    const g_modiTime = '2023-05-25 20:30:00';
+    const g_version = '2.3.2 (RP)';
+    const g_modiTime = '2023-05-30 16:50:00';
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     //
@@ -227,7 +222,6 @@ function gudaq(){
     }
 
     // HTTP requests
-    const g_use_GM_xmlhttpRequest = g_isInSandBox;
     const GuGuZhenRequest = {
         read : { method : 'POST' , url : '/fyg_read.php' },
         update : { method : 'POST' , url : '/fyg_click.php' },
@@ -245,44 +239,33 @@ function gudaq(){
     var g_httpRequests = [];
     function httpRequestBegin(request, queryString, fnLoad, fnError, fnTimeout) {
         let requestObj;
-        if (g_use_GM_xmlhttpRequest) {
-            requestObj = GM_xmlhttpRequest({
-                method: request.method,
-                url: window.location.origin + request.url,
-                headers: g_postHeader,
-                data: queryString,
-                onload: fnLoad,
-                onerror: fnError,
-                ontimeout: fnTimeout
-            });
+        const g_readUrl = window.location.origin + '/fyg_read.php'
+        const g_postUrl = window.location.origin + '/fyg_click.php'
+        requestObj = new XMLHttpRequest();
+        requestObj.onload = requestObj.onerror = requestObj.ontimeout = httpRequestEventHandler;
+        requestObj.open(request.method, window.location.origin + request.url);
+        for (let name in g_postHeader) {
+            requestObj.setRequestHeader(name, g_postHeader[name]);
         }
-        else {
-            requestObj = new XMLHttpRequest();
-            requestObj.onload = requestObj.onerror = requestObj.ontimeout = httpRequestEventHandler;
-            requestObj.open(request.merhod, window.location.origin + request.url);
-            for (let name in g_postHeader) {
-                requestObj.setRequestHeader(name, g_postHeader[name]);
-            }
-            requestObj.send(queryString);
+        requestObj.send(queryString);
 
-            function httpRequestEventHandler(e) {
-                switch (e.type) {
-                    case 'load':
-                        if (fnLoad != null) {
-                            fnLoad(e.currentTarget);
-                        }
-                        break;
-                    case 'error':
-                        if (fnError != null) {
-                            fnError(e.currentTarget);
-                        }
-                        break;
-                    case 'timeout':
-                        if (fnTimeout != null) {
-                            fnTimeout(e.currentTarget);
-                        }
-                        break;
-                }
+        function httpRequestEventHandler(e) {
+            switch (e.type) {
+                case 'load':
+                    if (fnLoad != null) {
+                        fnLoad(e.currentTarget);
+                    }
+                    break;
+                case 'error':
+                    if (fnError != null) {
+                        fnError(e.currentTarget);
+                    }
+                    break;
+                case 'timeout':
+                    if (fnTimeout != null) {
+                        fnTimeout(e.currentTarget);
+                    }
+                    break;
             }
         }
         g_httpRequests.push(requestObj);
@@ -2110,6 +2093,7 @@ function gudaq(){
 
         function parsePropertyString(s) {
             let a = s.split(',');
+            console.log(s);
             return {
                 isProperty : true,
                 metaIndex : parseInt(a[0]),
@@ -2203,6 +2187,59 @@ function gudaq(){
                 if (eqInfo?.length == 4) {
                     let name = eqInfo[3].trim();
                     let meta = (g_equipMap.get(name) ?? g_equipMap.get(name.substring(g_equipmentLevelName[0].length)));
+                    if(meta==undefined){
+                        let tempEqName,tempEqNameC;
+                        let tempEqType=node.innerHTML;
+                        if(tempEqType.indexOf('z21')>-1){tempEqType=1;tempEqName='NEWEQA';tempEqNameC='待更新的未知新武器'}
+                        else if(tempEqType.indexOf('z22')>-1){tempEqType=2;tempEqName='NEWEQB';;tempEqNameC='待更新的未知新手饰'}
+                        else if(tempEqType.indexOf('z23')>-1){tempEqType=3;tempEqName='NEWEQC';;tempEqNameC='待更新的未知新防具'}
+                        else if(tempEqType.indexOf('z24')>-1){tempEqType=4;tempEqName='NEWEQD';;tempEqNameC='待更新的未知新耳饰'};
+                        meta={
+                            "index": tempEqType-1,
+                            "name": tempEqNameC,
+                            "type": tempEqType,
+                            "attributes": [
+                                {
+                                    "attribute": {
+                                        "index": 33,
+                                        "type": 0,
+                                        "name": "未知属性"
+                                    },
+                                    "factor": 0,
+                                    "additive": 42
+                                },
+                                {
+                                    "attribute": {
+                                        "index": 33,
+                                        "type": 0,
+                                        "name": "未知属性"
+                                    },
+                                    "factor": 0,
+                                    "additive": 42
+                                },
+                                {
+                                    "attribute": {
+                                        "index": 15,
+                                        "type": 0,
+                                        "name": "未知属性"
+                                    },
+                                    "factor": 0,
+                                    "additive": 42
+                                },
+                                {
+                                    "attribute": {
+                                        "index": 33,
+                                        "type": 0,
+                                        "name": "未知属性"
+                                    },
+                                    "factor": 0,
+                                    "additive": 42
+                                }
+                            ],
+                            "shortMark": tempEqName,
+                            "alias": tempEqNameC
+                        };
+                    };
                     name = meta?.shortMark;
                     if (name?.length > 0) {
                         let attr = node.getAttribute('data-content')?.match(/>\s*\d+\s?%\s*</g);
@@ -2265,12 +2302,24 @@ function gudaq(){
             for (var i = g_equipmentLevelPoints.length - 1; i > 0 && eq < g_equipmentLevelPoints[i]; i--);
             return i;
         }
-        else if ((eq = e.isProperty ? e : propertyInfoParseNode(e))?.isProperty) {
+        else if((eq = e.isProperty ? e : propertyInfoParseNode(e))?.isProperty){
             return eq.level;
         }
         else if ((eq = (e.isAmulet ? e : (new Amulet()).fromNode(e)))?.isValid()) {
             return (eq.level + 2)
         }
+        try {
+                    let theme = JSON.parse(sessionStorage.getItem('ThemePack') ?? '{}');
+                    if (theme?.url != null) {
+                        amuletLoadTheme(theme);
+                        propertyLoadTheme(theme);
+                        equipLoadTheme(theme);
+                    }
+                }
+                catch (ex) {
+                    console.log('THEME:');
+                    console.log(ex);
+                }
         return -1;
     }
 
@@ -3118,10 +3167,51 @@ function gudaq(){
         { index : 29 , type : 1 , name : '体魄物减' },
         { index : 30 , type : 1 , name : '意志魔减' },
         { index : 31 , type : 1 , name : '敏捷绝伤' },
-        { index : 32 , type : 1 , name : '敏捷生命' }
+        { index : 32 , type : 1 , name : '敏捷生命' },
+        { index : 33 , type : 0 , name : '未知属性' }
     ];
 
     const g_equipments = [
+        {
+            index : -1,
+            name : '待更新的未知新武器',
+            type : 0,
+            attributes : [ { attribute : g_equipAttributes[33] , factor : 1 , additive : 0 },
+                           { attribute : g_equipAttributes[33] , factor : 1 , additive : 0 },
+                           { attribute : g_equipAttributes[33] , factor : 1 , additive : 0 },
+                           { attribute : g_equipAttributes[33] , factor : 1 , additive : 0 } ],
+            shortMark : 'NEWEQA'
+        },
+        {
+            index : -1,
+            name : '待更新的未知新手饰',
+            type : 1,
+            attributes : [ { attribute : g_equipAttributes[33] , factor : 1 , additive : 0 },
+                           { attribute : g_equipAttributes[33] , factor : 1 , additive : 0 },
+                           { attribute : g_equipAttributes[33] , factor : 1 , additive : 0 },
+                           { attribute : g_equipAttributes[33] , factor : 1 , additive : 0 } ],
+            shortMark : 'NEWEQB'
+        },
+        {
+            index : -1,
+            name : '待更新的未知新防具',
+            type : 2,
+            attributes : [ { attribute : g_equipAttributes[33] , factor : 1 , additive : 0 },
+                           { attribute : g_equipAttributes[33] , factor : 1 , additive : 0 },
+                           { attribute : g_equipAttributes[33] , factor : 1 , additive : 0 },
+                           { attribute : g_equipAttributes[33] , factor : 1 , additive : 0 } ],
+            shortMark : 'NEWEQC'
+        },
+        {
+            index : -1,
+            name : '待更新的未知新耳饰',
+            type : 3,
+            attributes : [ { attribute : g_equipAttributes[33] , factor : 1 , additive : 0 },
+                           { attribute : g_equipAttributes[33] , factor : 1 , additive : 0 },
+                           { attribute : g_equipAttributes[33] , factor : 1 , additive : 0 },
+                           { attribute : g_equipAttributes[33] , factor : 1 , additive : 0 } ],
+            shortMark : 'NEWEQD'
+        },
         {
             index : -1,
             name : '反叛者的刺杀弓',
@@ -3466,6 +3556,7 @@ function gudaq(){
         if (e?.length > 7) {
             itemSeparator ??= ', ';
             let sp = '';
+            console.log(e[0]);
             g_equipMap.get(e[0])?.attributes.forEach((attr, index) => {
                 text += `${sp}${attr.attribute.name} +${(attr.calculate ?? defaultEquipAttributeCalculate)
                                                              (attr, e[1], e[index + 4])}${attr.attribute.type == 0 ? '%' : ''}`;
@@ -4082,7 +4173,7 @@ function gudaq(){
                 0,
                 ((e) => {
                     btnRead.disabled = btnImport.disabled = 'disabled';
-                    genericPopupQuerySelector('#user_data_persistence_string').value = GM_getValue(USER_DATA_xPORT_GM_KEY, '');
+                    genericPopupQuerySelector('#user_data_persistence_string').value = null;//GM_getValue(USER_DATA_xPORT_GM_KEY, '');
                     let tipContainer = genericPopupQuerySelector('#user_data_import_tip');
                     let tipColor = tipContainer.style.color;
                     let tipString = tipContainer.innerText;
@@ -4096,7 +4187,7 @@ function gudaq(){
                     }), 3000);
                 }),
                 true);
-            btnRead.disabled = g_isInSandBox ? '' : 'disabled';
+            btnRead.disabled = 'disabled';
 
             let btnImport = genericPopupAddButton(
                 '执行导入',
@@ -4151,7 +4242,7 @@ function gudaq(){
                     else {
                         alert('输入内容格式有误，导入失败，请检查！');
                     }
-                    btnRead.disabled = g_isInSandBox ? '' : 'disabled';
+                    btnRead.disabled = 'disabled';
                     btnImport.disabled = '';
                 }),
                 true);
@@ -4174,7 +4265,7 @@ function gudaq(){
                 0,
                 (() => {
                     btnWrite.disabled = btnCopy.disabled = 'disabled';
-                    GM_setValue(USER_DATA_xPORT_GM_KEY, genericPopupQuerySelector('#user_data_persistence_string').value);
+                    //GM_setValue(USER_DATA_xPORT_GM_KEY, genericPopupQuerySelector('#user_data_persistence_string').value);
                     let tipContainer = genericPopupQuerySelector('#user_data_export_tip');
                     let tipColor = tipContainer.style.color;
                     let tipString = tipContainer.innerText;
@@ -4187,7 +4278,7 @@ function gudaq(){
                     }), 3000);
                 }),
                 true);
-            btnWrite.disabled = g_isInSandBox ? '' : 'disabled';
+            btnWrite.disabled = 'disabled';
 
             let btnCopy = genericPopupAddButton(
                 '复制导出内容至剪贴板',
@@ -4208,7 +4299,7 @@ function gudaq(){
                     setTimeout((() => {
                         tipContainer.style.color = tipColor;
                         tipContainer.innerText = tipString;
-                        btnWrite.disabled = g_isInSandBox ? '' : 'disabled';
+                        btnWrite.disabled = 'disabled';
                         btnCopy.disabled = '';
                     }), 3000);
                 }),
@@ -5117,9 +5208,22 @@ function gudaq(){
 
                                 const store = [ '', '【仓】'];
                                 eqbtns.forEach((btn) => {
+                                    let tempEQThis=btn.style.backgroundImage;
                                     let equipInfo = equipmentInfoParseNode(btn, true);
                                     let amulet = (new Amulet()).fromNode(btn);
                                     let propInfo = propertyInfoParseNode(btn);
+                                    if(equipInfo==null&&tempEQThis.indexOf('/z2')>-1){
+                                        let tempEQType,num1,num2,num3,num4,smcheck='0';
+                                        let numtemp = btn.getAttribute("data-content").match(/\d+(\.\d)?/g).map(o => +o);
+                                        let tempEqLv = btn.innerHTML.match(/\d+(\.\d)?/g).map(o => +o);
+                                        let eqid = btn.getAttribute("onclick").match(/\d+(\.\d)?/g).map(o => +o);
+                                        if(btn.getAttribute("data-content").indexOf('神秘')>-1){smcheck='1'};
+                                        if(tempEQThis.indexOf('/z21')>-1){tempEQType='NEWEQA'}
+                                        else if(tempEQThis.indexOf('/z22')>-1){tempEQType='NEWEQB'}
+                                        else if(tempEQThis.indexOf('/z23')>-1){tempEQType='NEWEQC'}
+                                        else if(tempEQThis.indexOf('/z24')>-1){tempEQType='NEWEQD'}
+                                        equipInfo=[tempEQType, tempEqLv[3].toString() , '0' , '0' ,numtemp[1].toString() , numtemp[3].toString() , numtemp[5].toString() , numtemp[7].toString() , smcheck, eqid[0].toString()];
+                                    };
                                     let styleClass = g_equipmentLevelStyleClass[objectGetLevel(equipInfo ?? amulet ?? propInfo)];
                                     let btn0 = document.createElement('button');
                                     btn0.className = `btn btn-light popover-${styleClass}`;
