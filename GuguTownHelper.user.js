@@ -3,9 +3,9 @@
 // @name:zh-CN   咕咕镇助手
 // @name:zh-TW   咕咕鎮助手
 // @name:ja      咕咕镇助手
-// @namespace    https://github.com/HazukiKaguya/GuguTownHelper
-// @homepage     https://github.com/HazukiKaguya/GuguTownHelper
-// @version      2.3.2
+// @namespace    https://github.com/GuguTown/GuguTownHelper
+// @homepage     https://github.com/GuguTown/GuguTownHelper
+// @version      2.3.3
 // @description  WebGame GuguTown Helper
 // @description:zh-CN 气人页游 咕咕镇助手
 // @description:zh-TW 氣人頁遊 咕咕鎮助手
@@ -14,15 +14,15 @@
 // @match        https://www.guguzhen.com/*
 // @match        https://www.momozhen.com/*
 // @license      MIT License
-// @downloadURL  https://github.com/HazukiKaguya/GuguTownDAQ_Reforged/raw/main/GuguTownHelper.user.js
-// @updateURL    https://github.com/HazukiKaguya/GuguTownDAQ_Reforged/raw/main/GuguTownHelper.user.js
+// @downloadURL  https://github.com/GuguTown/GuguTownHelper/raw/main/GuguTownHelper.user.js
+// @updateURL    https://github.com/GuguTown/GuguTownHelper/raw/main/GuguTownHelper.user.js
 // ==/UserScript==
 /* eslint-env jquery */
 function gudaq(){
     'use strict'
 
-    const g_version = '2.3.2 (RP)';
-    const g_modiTime = '2023-05-30 16:50:00';
+    const g_version = '2.3.3 (RP)';
+    const g_modiTime = '2023-05-30 17:15:00';
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     //
@@ -3469,6 +3469,16 @@ function gudaq(){
         },
         {
             index : -1,
+            name : '猎魔耳环',
+            type : 3,
+            attributes : [ { attribute : g_equipAttributes[24] , factor : 2 / 5 , additive : 0 },
+                           { attribute : g_equipAttributes[26] , factor : 2 / 25 , additive : 0 },
+                           { attribute : g_equipAttributes[32] , factor : 2 / 25 , additive : 0 },
+                           { attribute : g_equipAttributes[3] , factor : 3 / 50 , additive : 0 } ],
+            shortMark : 'HUNT'
+        },
+        {
+            index : -1,
             name : '探险者耳环',
             type : 3,
             attributes : [ { attribute : g_equipAttributes[8] , factor : 10 , additive : 0 },
@@ -3476,16 +3486,6 @@ function gudaq(){
                            { attribute : g_equipAttributes[20] , factor : 2 , additive : 0 },
                            { attribute : g_equipAttributes[10] , factor : 4 , additive : 0 } ],
             shortMark : 'SCARF'
-        },
-        {
-            index : -1,
-            name : '猎魔耳环',
-            type : 3,
-            attributes : [ { attribute : g_equipAttributes[24] , factor : 2 / 5 , additive : 0 },
-                           { attribute : g_equipAttributes[26] , factor : 2 / 25 , additive : 0 },
-                           { attribute : g_equipAttributes[32] , factor : 2 / 25 , additive : 0 },
-                           { attribute : g_equipAttributes[3] , factor : 3 / 50 , additive : 0 } ],
-            shortMark : 'HUNTER'
         }
     ];
 
