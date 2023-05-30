@@ -1,4 +1,4 @@
-English | [Chinese](README_zh.md)   
+English | [中文](README.md)   
 # GuguTown Helper
 WebGame GuguTown Helper.    
 This version mainly deals with compatibility issues with ThemePackage Manager Plugin (current) and internationalization works (todo).
