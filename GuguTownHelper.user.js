@@ -5,7 +5,7 @@
 // @name:ja      咕咕镇助手
 // @namespace    https://github.com/GuguTown/GuguTownHelper
 // @homepage     https://github.com/GuguTown/GuguTownHelper
-// @version      2.3.3
+// @version      2.3.4
 // @description  WebGame GuguTown Helper
 // @description:zh-CN 气人页游 咕咕镇助手
 // @description:zh-TW 氣人頁遊 咕咕鎮助手
@@ -21,8 +21,8 @@
 function gudaq(){
     'use strict'
 
-    const g_version = '2.3.3 (RP)';
-    const g_modiTime = '2023-05-30 17:15:00';
+    const g_version = '2.3.4 (RP)';
+    const g_modiTime = '2023-06-03 18:00:00';
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     //
@@ -8857,96 +8857,12 @@ function gudaq(){
         //
         // temporary solution
         //
-        function calcWishLimit(max) {
-            let limits = 0;
-            let points = 0;
-            document.querySelectorAll('#xydiv p.alert.fyg_mp8.fyg_f14')?.forEach((e) => {
-                let p = e.innerHTML.match(/.+?最大(\d+)级.+?>(\d+)</);
-                if (p.length == 3) {
-                    limits += parseInt(p[1]);
-                    points += parseInt(p[2]);
-                }
-            });
-            addUserMessageSingle('许愿池',
-                                 `许愿点总上限：<b style="color:blue;">${limits}</b>, 已达到：<b style="color:blue;">${points}</b>, ` +
-                                 `下次可投入贝壳上限：<b style="color:blue;">${(limits = Math.min(limits - points, max)) * 30}</b>万`,
-                                 true);
-            return limits;
-        }
-
-        const wishRequest = g_httpRequestMap.get('xy_n');
-        function tryMakeWish(points, maxRetry) {
-            let requestData = wishRequest.data.replace('"+cn+"', '18').replace('"+id+"', points.toString());
-
-            genericPopupInitialize();
-            genericPopupShowProgressMessage();
-            beginMakeWish();
-
-            function beginMakeWish() {
-                if (maxRetry > 0) {
-                    genericPopupUpdateProgressMessage(`尝试中，请稍候……（${maxRetry--}）`);
-                    httpRequestBegin(
-                        wishRequest.request,
-                        requestData,
-                        (response) => {
-                            if (!(response.responseText?.length > 0)) {
-                                alert('服务响应无效，停止尝试。');
-                                genericPopupCloseProgressMessage();
-                            }
-                            else if (response.responseText.indexOf('请重新许愿') >= 0){
-                                beginMakeWish();
-                            }
-                            else {
-                                // addUserMessageSingle('许愿池', response.responseText);
-                                // xy_s();
-                                genericPopupCloseProgressMessage();
-                                $("#mymessagehtml").html(response.responseText);
-                                $("#mymessage").modal('show', 'fit');
-                                $("#xydiv").toggleClass("loading");
-                                xy_s();
-                            }
-                        });
-                    return;
-                }
-                else {
-                    alert('重试次数已达上限，请尝试减少投入以降低失败几率。');
-                    genericPopupCloseProgressMessage();
-                }
-            }
-        }
-
-        let wishLimit = 10;
-        let observer = new MutationObserver((mList) => {
-            observer.disconnect();
-
-            let btns = mList?.[0]?.target?.querySelectorAll('button.btn.btn-lg.btn-block');
-            btns?.forEach((btn) => {
-                let pts = btn.getAttribute('onclick')?.match(/xy_n\('18','(\d+)'\)/);
-                if (pts?.length == 2 && (pts = parseInt(pts[1])) > 0) {
-                    btn.removeAttribute('onclick');
-                    if (pts > wishLimit) {
-                        btn.disabled = 'disabled';
-                    }
-                    else {
-                        btn.onclick = (() => {
-                            $("#mymessage").modal('hide');
-                            tryMakeWish(pts, pts * 20);
-                        });
-                    }
-                }
-            });
-
-            observer.observe(document.getElementById('mymessage'), { subtree : true , childList : true });
-        });
-        observer.observe(document.getElementById('mymessage'), { subtree : true , childList : true });
-        //
-        // temporary solution
-        //
 
         function getWishPoints() {
             let text = 'WISH';
             for (let i = 2; i <= 15; i++) {
                 text += (' ' + (document.getElementById('xyx_' + ('0' + i).slice(-2))?.innerText ?? '0'));
+                console.log(text)
             }
             return text;
         }
@@ -8977,10 +8893,6 @@ function gudaq(){
         });
 
         (new MutationObserver(() => {
-            //
-            // temporary solution
-            //
-            wishLimit = calcWishLimit(10);
             //
             // temporary solution
             //
@@ -9406,7 +9318,7 @@ function gudaq(){
             }
         }, 200);
     }
-};
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
